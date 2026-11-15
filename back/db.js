@@ -1,10 +1,11 @@
 import mysql from 'mysql2/promise'
 import 'dotenv/config'
+import { readFile } from 'node:fs/promises'
 
-const HOST = process.env.DB_HOST
+const HOST = process.env.HOST
 const USER = process.env.DB_USER
 const PASSWORD = process.env.DB_PASSWORD
-const DATABASE = process.env.DB_DATABASE
+const DATABASE = process.env.DATABASE
 
 const db = mysql.createPool({
     host: HOST,
@@ -13,7 +14,11 @@ const db = mysql.createPool({
     database: DATABASE,
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    multipleStatements: true // pra aceitar varios comandos do sql de uma vez so
 })
+
+const query = await readFile('../back/sql/script_criacao.sql', 'utf-8')
+await db.query(query)
 
 export default db
