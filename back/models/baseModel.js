@@ -5,9 +5,9 @@ export default class BaseModel {
     #colunas
     static #db = db
     constructor(tabela, colunas) {
-        this.#tabela = tabela
-        this.#colunas = colunas
-        BaseModel.#db = db
+        this.#tabela = tabela // nome da tabela
+        this.#colunas = colunas // lista das colunas da tabela
+        BaseModel.#db = db 
     }
 
     get tabela() {
