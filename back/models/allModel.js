@@ -1,4 +1,5 @@
 import BaseModel from './baseModel.js'
+import bcrypt from 'bcrypt'
 
 export class ProfessorModel extends BaseModel {
     constructor() {
@@ -11,6 +12,25 @@ export class ProfessorModel extends BaseModel {
             'senha',
             'especializacao'
         ])
+    }
+
+    async login(email, senha) {
+        try {
+            const [professor] = await this.db.execute(
+                "SELECT * FROM professor WHERE email = ?", [email]
+            )
+            if (professor.length === 0) {
+                return null
+            }
+            const senhaValida = await bcrypt.compare(senha, professor[0].senha)
+            if (senhaValida) {
+                return professor[0]
+            } else {
+                return null
+            }
+        }catch(err) {
+            throw new Error(`Erro ao realizar login: ${err.message}`)
+        }
     }
 }
 
@@ -27,6 +47,25 @@ export class AlunoModel extends BaseModel {
             'data_criacao',
             'senha'
         ])
+    }
+
+    async login(email, senha) {
+        try {
+            const [aluno] = await this.db.execute(
+                "SELECT * FROM professor WHERE email = ?", [email]
+            )
+            if (aluno.length === 0) {
+                return null
+            }
+            const senhaValida = await bcrypt.compare(senha, aluno[0].senha)
+            if (senhaValida) {
+                return aluno[0]
+            } else {
+                return null
+            }
+        }catch(err) {
+            throw new Error(`Erro ao realizar login: ${err.message}`)
+        }
     }
 }
 

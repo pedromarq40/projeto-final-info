@@ -1,13 +1,13 @@
-import db from '../db.js'
+import db from '../sql/db.js'
 export default class BaseModel {
 
     #tabela
     #colunas
-    static #db = db
+    #db = db
     constructor(tabela, colunas) {
         this.#tabela = tabela // nome da tabela
         this.#colunas = colunas // lista das colunas da tabela
-        BaseModel.#db = db 
+        this.#db = db 
     }
 
     get tabela() {
@@ -18,14 +18,18 @@ export default class BaseModel {
         return this.#colunas
     }
 
-    static #tratarDados(dados) {
+    get db() {
+        return this.#db
+    }
+
+    tratarDados(dados) {
         const colunas = Object.keys(dados)
         const valores = Object.values(dados)
         
         return { colunas, valores }
     }
 
-    static async listarTodos(){
+    async listarTodos(){
         try{
             const [linhas] = await this.#db.query(`SELECT * FROM ${this.tabela}`)
             return linhas
@@ -34,8 +38,8 @@ export default class BaseModel {
         }
     }
 
-    static async listarPorCampo(campo){
-        const {campo, valor} = this.#tratarDados(campo)
+    async listarPorCampo(campofunc){
+        const {campo, valor} = this.tratarDados(campofunc)
         // campo é tipo {id : 1} ou {nome: 'João'}
         try{
             const [linhas] = await this.#db.execute(`SELECT * FROM ${this.tabela} WHERE ${campo} = ?`
@@ -47,8 +51,8 @@ export default class BaseModel {
         }
     }
 
-    static async inserir(dados){
-        const {colunas, valores} = this.#tratarDados(dados)
+    async inserir(dadosfunc){
+        const {colunas, valores} = this.tratarDados(dadosfunc)
         const str_colunas = colunas.join(', ')
         const str_valores = valores.map(() => '?').join(', ')
         try{
@@ -57,13 +61,13 @@ export default class BaseModel {
             )
             return resultado
         }catch(err){
-            throw error(`Erro ao inserir registro: ${err.message}`)
+            throw new rror(`Erro ao inserir registro: ${err.message}`)
         }
     }
 
-    static async atualizar(dados, campo){
-        const {colunas, valores} = this.#tratarDados(campo)
-        const {campo_id, valor_id} = this.#tratarDados(dados)
+    async atualizar(dadosfunc, campofunc){
+        const {colunas, valores} = this.tratarDados(campofunc)
+        const {campo_id, valor_id} = this.tratarDados(dadosfunc)
         const str_colunas = colunas.map(coluna => `${coluna} = ?`).join(', ')
         try{
             const [resultado] = await this.#db.execute(
@@ -76,8 +80,8 @@ export default class BaseModel {
         }
     }
 
-    static async deletar(campo){
-        const {campo, valor} = this.#tratarDados(campo)
+    async deletar(campofunc){
+        const {campo, valor} = this.tratarDados(campofunc)
         try{
             const [resultado] = await this.#db.execute(
                 `DELETE FROM ${this.tabela} WHERE ${campo} = ?`, valor

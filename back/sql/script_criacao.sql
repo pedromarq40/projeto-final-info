@@ -4,7 +4,7 @@ use pulsofit;*/
 
 create table if not exists professor(
     CPF varchar(11) primary key,
-    email varchar(35),
+    email varchar(35) unique,
     nome_completo varchar(40),
     telefone varchar(11),
     data_criacao date,
@@ -17,7 +17,7 @@ create table if not exists aluno(
     altura DECIMAL(5, 2),
     peso DECIMAL(5, 2),
     problemas_saude varchar(50),
-    email varchar(35),
+    email varchar(35) unique,
     nome_completo varchar(40),
     telefone varchar(11),
     data_criacao date,
@@ -87,7 +87,7 @@ create table if not exists assinatura(
 );
 
 /*inserts*/
-INSERT INTO
+INSERT IGNORE INTO
     professor
 VALUES
     (
@@ -109,7 +109,7 @@ VALUES
         'Ginastica'
     );
 
-INSERT INTO
+INSERT IGNORE INTO
     aluno
 VALUES
     (
@@ -135,7 +135,7 @@ VALUES
         '123456'
     );
 
-INSERT INTO
+INSERT IGNORE INTO
     exercicio
 VALUES
     (
@@ -154,13 +154,13 @@ VALUES
         'https://youtube.com/shorts/Yp-SuCCqui8?si=2IQELO8U0n6f0w_7'
     );
 
-INSERT INTO
+INSERT IGNORE INTO
     plano
 VALUES
     (1, 89.90, 'Mensal'),
     (2, 149.90, 'Trimestral');
 
-INSERT INTO
+INSERT IGNORE INTO
     FichaDeTreino
 VALUES
     (
@@ -178,27 +178,27 @@ VALUES
         '2026-12-01'
     );
 
-INSERT INTO
+INSERT IGNORE INTO
     RegistroDeTreino
 VALUES
     ('2026-11-10', 1, '08:00:00', '01:00:00'),
     ('2026-11-10', 2, '09:00:00', '00:50:00'),
     ('2026-11-11', 1, '08:30:00', '01:10:00');
 
-INSERT INTO
+INSERT IGNORE INTO
     ExercicioFicha
 VALUES
     (1, 1, 30, 3, 12),
     (3, 1, 15, 3, 10),
     (2, 2, 40, 4, 12);
 
-INSERT INTO
+INSERT IGNORE INTO
     assinatura
 VALUES
     (1, '12546913214', '2026-11-01', '2026-12-01'),
     (2, '78712366213', '2026-11-01', '2027-02-01');
 
-INSERT INTO
+INSERT IGNORE INTO
     mensalidade
 VALUES
     (
