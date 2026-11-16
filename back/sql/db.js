@@ -2,10 +2,10 @@ import mysql from 'mysql2/promise'
 import 'dotenv/config'
 import { readFile } from 'node:fs/promises'
 
-const HOST = process.env.HOST
+const HOST = process.env.DB_HOST
 const USER = process.env.DB_USER
 const PASSWORD = process.env.DB_PASSWORD
-const DATABASE = process.env.DATABASE
+const DATABASE = process.env.DB_NAME
 
 const db = mysql.createPool({
     host: HOST,

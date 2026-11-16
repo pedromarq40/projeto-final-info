@@ -22,11 +22,10 @@ export class ProfessorController extends BaseController {
         try {
             const professor = await this.model.login(email, senha)
             if (professor) {
-                const token = jwt.sign({ id: professor.id }, process.env.JWT, { expiresIn: '1h' })
-                res.status(200).json({mensagem: "Login Efetuado com Sucesso!"})
-                .cookie('token', token, 
+                const token = jwt.sign({ id: professor.CPF, role: "professor" }, process.env.JWT, { expiresIn: '1h' })
+                res.status(200).cookie('token', token, 
                     { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 3600000 }
-                ) // 1 hora
+                ).json({mensagem: "Login Efetuado com Sucesso!"})
             } else {
                 res.status(401).json({ error: 'Credenciais inválidas' })
             }
@@ -34,8 +33,11 @@ export class ProfessorController extends BaseController {
             res.status(500).json({ error: err.message })
         }
     }
-
-    static async novoProfessor(req, res) {
+    /**
+     * Insere um novo professor no banco de dados(cadastro).
+     * Difere do inserir do baseModel porque salva a senha em hash.
+     */
+    static async inserir(req, res) {
         try {
             const dados = req.body
             dados['senha'] = await this.model.hashPassword(dados['senha'])
@@ -61,13 +63,12 @@ export class AlunoController extends BaseController {
     static async loginAluno(req, res) {
         const { email, senha } = req.body
         try {
-            const professor = await this.model.login(email, senha)
-            if (professor) {
-                const token = jwt.sign({ id: professor.id }, process.env.JWT, { expiresIn: '1h' })
-                res.status(200).json({mensagem: "Login Efetuado com Sucesso!"})
-                .cookie('token', token, 
+            const aluno = await this.model.login(email, senha)
+            if (aluno) {
+                const token = jwt.sign({ id: aluno.CPF, role: "aluno" }, process.env.JWT, { expiresIn: '1h' })
+                res.status(200).cookie('token', token, 
                     { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 3600000 }
-                )
+                ).json({mensagem: "Login Efetuado com Sucesso!"})
             } else {
                 res.status(401).json({ error: 'Credenciais inválidas' })
             }
@@ -81,7 +82,11 @@ export class AlunoController extends BaseController {
         res.status(200).json({ message: 'Logout realizado com sucesso' })
     }
 
-    static async novoAluno(req, res) {
+    /**
+     * Insere um novo aluno no banco de dados(cadastro).
+     * Difere do inserir do baseModel porque salva a senha em hash.
+     */
+    static async inserir(req, res) {
         try {
             const dados = req.body
             dados['senha'] = await this.model.hashPassword(dados['senha'])

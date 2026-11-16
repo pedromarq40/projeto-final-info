@@ -32,6 +32,11 @@ export class ProfessorModel extends BaseModel {
             throw new Error(`Erro ao realizar login: ${err.message}`)
         }
     }
+
+    async hashPassword(senha){
+        const senhaHash = await bcrypt.hash(senha, 10);
+        return senhaHash
+    }
 }
 
 export class AlunoModel extends BaseModel {
@@ -52,11 +57,12 @@ export class AlunoModel extends BaseModel {
     async login(email, senha) {
         try {
             const [aluno] = await this.db.execute(
-                "SELECT * FROM professor WHERE email = ?", [email]
+                "SELECT * FROM aluno WHERE email = ?", [email]
             )
             if (aluno.length === 0) {
                 return null
             }
+            console.log(senha, aluno[0].senha)
             const senhaValida = await bcrypt.compare(senha, aluno[0].senha)
             if (senhaValida) {
                 return aluno[0]
@@ -64,8 +70,13 @@ export class AlunoModel extends BaseModel {
                 return null
             }
         }catch(err) {
-            throw new Error(`Erro ao realizar login: ${err.message}`)
+            throw new Error(`Erro ao realizar login: ${err.message}, ERRO NO ALUNOMODEL`)
         }
+    }
+
+    async hashPassword(senha){
+        const senhaHash = await bcrypt.hash(senha, 10);
+        return senhaHash
     }
 }
 

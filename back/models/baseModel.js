@@ -61,7 +61,7 @@ export default class BaseModel {
             )
             return resultado
         }catch(err){
-            throw new rror(`Erro ao inserir registro: ${err.message}`)
+            throw new Error(`Erro ao inserir registro: ${err.message}`)
         }
     }
 
