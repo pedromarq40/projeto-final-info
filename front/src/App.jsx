@@ -1,24 +1,36 @@
-import { useState } from "react"
+import { BrowserRouter, Routes, Route} from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import api from './api/api.js'
+import Protected from './components/Protected.jsx';
+import Login from './pages/login.jsx';
+import Cadastro from './pages/cadastro.jsx'
+import Home from './pages/home.jsx'
+
+function NotFound() {
+  return <h2>404 - Página não encontrada</h2>;
+}
 
 export default function App() {
+  const [user, setUser] = useState(undefined)
 
-  const [contador, clique] = useState(0)
+  useEffect(() => {
+    api.get("/auth/me")
+      .then((res) => setUser(res.data.user))
+      .catch(() => setUser(null));
+  }, []);
+
+  if (user === undefined) return null
+
+  const isAuth = !!user
 
   return (
-  <>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <h2> olha um contador ai</h2>
-    <button onClick={() => clique(contador + 1)}>
-      Olha um botão ai</button>
-    <h2>Olha um contador ai: {contador}</h2>
-    </body>
-    </html>
-  </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Protected children={<Home user={user} setUser={setUser}/>} condition={isAuth} redirectTo='/login'/>}/>
+        <Route path="/cadastro" element={<Protected children={<Cadastro/>} condition={!isAuth}/>}/>
+        <Route path="/login" element={<Protected children={<Login setUser={setUser}/>} condition={!isAuth}/>}/>
+        <Route path="*" element={<NotFound/>}/>
+      </Routes>
+    </BrowserRouter>
+  );
 }
