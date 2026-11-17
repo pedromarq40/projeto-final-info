@@ -10,3 +10,7 @@
 **Tarefa:** Início do Backend e das classes <br>
 **Descrição:** Criei as pastas do server, iniciei os primeiro arquivos, primeira rota, 
 instalei bibliotecas necessárias, fiz a conexão do mysql, configurei o .env<br>
+
+**Data:** 16/11/2026 <br>
+**Tarefa:** Termino do Backend e das classes <br>
+**Descrição:** Classes feitas, padrão mvc, criação das rotas no express<br>
