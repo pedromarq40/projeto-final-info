@@ -62,7 +62,6 @@ export class AlunoModel extends BaseModel {
             if (aluno.length === 0) {
                 return null
             }
-            console.log(senha, aluno[0].senha)
             const senhaValida = await bcrypt.compare(senha, aluno[0].senha)
             if (senhaValida) {
                 return aluno[0]
@@ -130,7 +129,8 @@ export class PlanoModel extends BaseModel {
         super('plano', [
             'id_plano',
             'valor_mensal',
-            'nome'
+            'nome',
+            'efetivo'
         ])
     }
 }

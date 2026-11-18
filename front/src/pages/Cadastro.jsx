@@ -1,11 +1,15 @@
+
 import { useState } from 'react';
 import api from '../api/api.js'
+import { useNavigate } from 'react-router-dom';
 
-const inputClass = "w-full rounded-xl border border-transparent bg-white px-4 py-3.5 text-sm text-[#111310] shadow-sm outline-none transition-all duration-300 placeholder:text-[#111310]/40 focus:border-[#a6ee1f] focus:shadow-[0_0_0_4px_rgba(166,238,31,0.25)]";
+const inputClass = "w-full rounded-xl border border-transparent bg-white px-4 py-3.5 text-sm text-[#111310] shadow-sm outline-none placeholder:text-[#111310]/40 focus:border-[#a6ee1f] focus:shadow-[0_0_0_4px_rgba(166,238,31,0.25)]";
 
 const onlyDigits = (value) => value.replace(/\D/g, "");
 
 export default function Cadastro() {
+  const navigate = useNavigate()
+
   const [role, setRole] = useState("aluno");
   const [form, setForm] = useState({
     nome_completo: "",
@@ -44,11 +48,13 @@ export default function Cadastro() {
         : { ...base, especializacao: form.especializacao };
 
     try {
-      const response = await api.post(`/${role === "aluno" ? "alunos" : "professores"}/cadastro`, dados)
-      console.log(response.msg)
+      await api.post(`/${role === "aluno" ? "alunos" : "professores"}/cadastro`, dados)
+      alert("Cadastro concluído com sucesso!")
+      navigate("/login")
     } catch (error) {
-      console.log(error.response?.status);
-      console.log(error.response?.data); 
+      console.log(error.response?.status)
+      console.log(error.response?.data)
+      alert("Erro no cadastro")
     }
   }
 
@@ -56,7 +62,6 @@ export default function Cadastro() {
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       {/* Lado esquerdo */}
       <aside className="relative hidden items-center overflow-hidden bg-[#111310] p-16 lg:flex">
-        <div className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#a6ee1f]/20 blur-3xl" />
 
         <div className="relative">
           <div className="mb-12 text-xl font-extrabold tracking-tight">
@@ -77,8 +82,12 @@ export default function Cadastro() {
       {/* Lado direito */}
       <main className="flex items-center justify-center bg-[#f3f5ef] px-6 py-12">
         <form onSubmit={handleSubmit} className="w-full max-w-sm">
-          <h2 className="text-4xl font-bold tracking-tight text-[#111310]">Criar conta</h2>
-          <p className="mt-2 text-sm text-[#111310]/50">Preencha seus dados para começar.</p>
+          <h2 className="text-4xl font-bold tracking-tight text-[#111310]">
+            Criar conta
+          </h2>
+          <p className="mt-2 text-sm text-[#111310]/50">
+            Preencha seus dados para começar.
+          </p>
 
           {/* Perfil */}
           <div className="mt-8 grid grid-cols-2 gap-1 rounded-xl bg-[#e6eae0] p-1">
@@ -90,7 +99,7 @@ export default function Cadastro() {
                 key={value}
                 type="button"
                 onClick={() => setRole(value)}
-                className={`rounded-lg py-3 text-sm font-semibold transition-all duration-300 ${
+                className={`rounded-lg py-3 text-sm font-semibold ${
                   role === value
                     ? "bg-white text-[#111310] shadow-md"
                     : "text-[#111310]/50 hover:text-[#111310]"
@@ -212,14 +221,17 @@ export default function Cadastro() {
 
           <button
             type="submit"
-            className="mt-6 w-full rounded-xl bg-[#a6ee1f] py-4 text-sm font-bold text-[#111310] shadow-lg shadow-[#a6ee1f]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#a6ee1f]/50 active:translate-y-0"
+            className="mt-6 w-full rounded-xl bg-[#a6ee1f] py-4 text-sm font-bold text-[#111310] shadow-lg shadow-[#a6ee1f]/30"
           >
             Criar conta
           </button>
 
           <p className="mt-6 text-center text-sm text-[#111310]/50">
             Já tem conta?{" "}
-            <a href="/login" className="font-semibold text-[#5a8a0f] transition-colors hover:text-[#111310]">
+            <a
+              href="/login"
+              className="font-semibold text-[#5a8a0f] hover:text-[#111310]"
+            >
               Entrar
             </a>
           </p>

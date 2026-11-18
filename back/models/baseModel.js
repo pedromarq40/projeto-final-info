@@ -51,6 +51,19 @@ export default class BaseModel {
         }
     }
 
+    async listarPorCampo(campofunc) {
+        const { colunas, valores } = this.tratarDados(campofunc)
+        try {
+            const [linhas] = await this.#db.execute(
+                `SELECT * FROM ${this.tabela} WHERE ${colunas[0]} = ?`,
+                valores
+            )
+            return linhas
+        } catch (err) {
+            throw new Error(`Erro ao listar registros: ${err.message}`)
+        }
+    }
+
     async inserir(dadosfunc){
         const {colunas, valores} = this.tratarDados(dadosfunc)
         const str_colunas = colunas.join(', ')
@@ -66,13 +79,18 @@ export default class BaseModel {
     }
 
     async atualizar(dadosfunc, campofunc){
-        const {colunas, valores} = this.tratarDados(campofunc)
-        const {campo_id, valor_id} = this.tratarDados(dadosfunc)
+        const {colunas, valores} = this.tratarDados(dadosfunc)
+        const camposFiltro = Object.keys(campofunc)
+        const valoresFiltro = Object.values(campofunc)
+        if (colunas.length === 0 || camposFiltro.length === 0) {
+            throw new Error('Dados e filtro são obrigatórios para atualizar registros.')
+        }
         const str_colunas = colunas.map(coluna => `${coluna} = ?`).join(', ')
+        const str_filtros = camposFiltro.map(campo => `${campo} = ?`).join(' AND ')
         try{
             const [resultado] = await this.#db.execute(
-                `UPDATE ${this.tabela} SET ${str_colunas} WHERE ${campo_id} = ?`,
-                ...valores, valor_id
+                `UPDATE ${this.tabela} SET ${str_colunas} WHERE ${str_filtros}`,
+                [...valores, ...valoresFiltro]
             )
             return resultado
         }catch(err){
@@ -81,10 +99,14 @@ export default class BaseModel {
     }
 
     async deletar(campofunc){
-        const {campo, valor} = this.tratarDados(campofunc)
+        const { colunas, valores } = this.tratarDados(campofunc)
+        if (colunas.length === 0) {
+            throw new Error('Filtro é obrigatório para deletar registros.')
+        }
+        const filtros = colunas.map(campo => `${campo} = ?`).join(' AND ')
         try{
             const [resultado] = await this.#db.execute(
-                `DELETE FROM ${this.tabela} WHERE ${campo} = ?`, valor
+                `DELETE FROM ${this.tabela} WHERE ${filtros}`, valores
             )
             return resultado
         }catch(err){
@@ -92,4 +114,3 @@ export default class BaseModel {
         }
     }   
 }
-

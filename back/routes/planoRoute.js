@@ -6,7 +6,7 @@ const router = express.Router()
 router.get('/', (req, res) => PlanoController.listarTodos(req, res))
 router.get('/campo', (req, res) => PlanoController.listarPorCampo(req, res))
 router.post('/', (req, res) => PlanoController.inserir(req, res), auth)
-router.put('/', (req, res) => PlanoController.atualizar(req, res), auth)
-router.delete('/', (req, res) => PlanoController.deletar(req, res), auth)
+router.put('/:id', (req, res) => PlanoController.atualizar(req, res), auth)
+router.delete('/:id', (req, res) => PlanoController.deletar(req, res), auth)
 
 export default router

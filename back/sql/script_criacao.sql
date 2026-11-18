@@ -20,7 +20,7 @@ create table if not exists aluno(
     email varchar(35) unique,
     nome_completo varchar(40),
     telefone varchar(11),
-    data_criacao date,
+    data_criacao date default(now()),
     senha varchar(255)
 );
 
@@ -62,7 +62,8 @@ create table if not exists ExercicioFicha(
 create table if not exists plano(
     id_plano int primary key,
     valor_mensal decimal(10, 2),
-    nome varchar(15)
+    nome varchar(15),
+    efetivo boolean not null default TRUE
 );
 
 create table if not exists mensalidade(
@@ -157,8 +158,8 @@ VALUES
 INSERT IGNORE INTO
     plano
 VALUES
-    (1, 89.90, 'Mensal'),
-    (2, 149.90, 'Trimestral');
+    (1, 89.90, 'Mensal', TRUE),
+    (2, 149.90, 'Trimestral', TRUE);
 
 INSERT IGNORE INTO
     FichaDeTreino
