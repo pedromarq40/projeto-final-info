@@ -16,41 +16,43 @@ Projeto integrador - Gestão de academia<br>
 
 <h3>Funcionalidades finais:</h3>
 
+<h3>Funcionalidades finais:</h3>
+
 <table border="1">
   <thead>
     <tr>
-      <th>Pedro Marques</th>
-      <th>Vitor Sérgio</th>
-      <th>Victor Miguel</th>
+      <th>Marques</th>
+      <th>Victor</th>
+      <th>Xavier</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>
-        <b>Ficha de treino (professor):</b>
-        <p>CRUD de fichas de treino e atribuição de ficha de treino a aluno</p>
+        <b>Tela do professor:</b>
+        <ul>
+          <li>Tela de CRUD de ficha de treino</li>
+          <li>Tela de CRUD de exercícios</li>
+          <li>Atribuição e remoção de ficha de treino a aluno</li>
+        </ul>
       </td>
       <td>
-        <b>Visualização de ficha de treino (aluno):</b>
-        <p>Leitura das fichas de treino</p>
+        <b>Tela de professor:</b>
+        <ul>
+          <li>Dashboard inicial de professor</li>
+          <li>Leitura de alunos</li>
+          <li>Leituras especiais (ex: alunos com mensalidade atrasada, pagas ou pagas em determinado período, usando INNER JOIN)</li>
+          <li>CRUD de planos</li>
+        </ul>
       </td>
       <td>
-        <b>Tela principal (geral):</b>
-        <p>Navegação nas funcionalidades de professor</p>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <b>Exercícios (professor):</b>
-        <p>CRUD completo de exercícios</p>
-      </td>
-      <td>
-        <b>Registro de treino (aluno):</b>
-        <p>Descrição aqui...</p>
-      </td>
-      <td>
-        <b>Visualização de alunos (professor):</b>
-        <p>Leitura Geral de Alunos e Operações com alunos</p>
+        <b>Tela de aluno:</b>
+        <ul>
+          <li>Pagar mensalidade</li>
+          <li>Escolher e trocar assinatura</li>
+          <li>Registrar treino</li>
+          <li>Editar dados do aluno</li>
+        </ul>
       </td>
     </tr>
   </tbody>
