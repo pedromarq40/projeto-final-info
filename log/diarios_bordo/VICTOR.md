@@ -13,3 +13,8 @@
 **Data**: 16/11/2026<br>
 **Tarefa**: Tela de cadastro, login e home no frontend<br>
 **Descrição**: Telas de cadastro, login e home(com logout), funcionais quanto à autenticação. O html foi estilizado com base nos designs feitos anteriormente.<br><hr>
+
+**Data**: 18/11/2026<br>
+**Tarefa**: Gerenciamento de usuários e planos para o professor<br>
+**Descrição**: Um professor agora pode: visualizar e buscar alunos, visualizar, criar, editar e 'excluir' planos<br><hr>
+
