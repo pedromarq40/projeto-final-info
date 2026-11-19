@@ -13,3 +13,11 @@ Descrição : O modelo logico foi atualizado conforme orientações dadas pelo p
 Data: 14/11/2026
 Tarefa: Criação do script SQL do banco de dados
 Descrição: Hoje desenvolvi o script SQL do banco de dados da PulsoFit, contendo a criação das tabelas, definição das chaves primárias e estrangeiras e inserção de dados para testes.Realizei consultas pelo MySQL Workbench.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Data: 19/11/2026
+Tarefa: Desenvolvimento das funcionalidades de gerenciamento de alunos e conta do aluno.
+Descrição: Implementação do cadastro, login, consulta e edição dos dados dos alunos. Ajustes nas rotas, controllers e models para integração entre frontend e backend. Também foi realizada uma melhoria visual na tela inicial do sistema e implementada a rota de exclusão de alunos.
+
+
