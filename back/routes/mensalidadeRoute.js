@@ -8,5 +8,9 @@ router.get('/campo', (req, res) => MensalidadeController.listarPorCampo(req, res
 router.post('/', (req, res) => MensalidadeController.inserir(req, res), auth)
 router.put('/', (req, res) => MensalidadeController.atualizar(req, res), auth)
 router.delete('/', (req, res) => MensalidadeController.deletar(req, res), auth)
+router.get('/minhas', auth, (req, res) =>
+    MensalidadeController.minhasMensalidades(req, res))
+router.put('/pagar', auth, (req, res) =>
+    MensalidadeController.pagar(req, res))
 
 export default router

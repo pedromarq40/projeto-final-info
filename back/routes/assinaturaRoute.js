@@ -8,5 +8,9 @@ router.get('/campo', (req, res) => AssinaturaController.listarPorCampo(req, res)
 router.post('/', (req, res) => AssinaturaController.inserir(req, res))
 router.put('/', (req, res) => AssinaturaController.atualizar(req, res))
 router.delete('/', (req, res) => AssinaturaController.deletar(req, res))
+router.get('/minha', auth, (req, res) =>
+    AssinaturaController.minhaAssinatura(req, res))
+router.put('/trocar', auth, (req, res) =>
+    AssinaturaController.trocar(req, res))
 
 export default router

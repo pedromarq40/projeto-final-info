@@ -18,8 +18,8 @@ export default function Cadastro() {
     telefone: "",
     senha: "",
     // aluno
-    altura: null,
-    peso: null,
+   altura: "",
+   peso: "",
     problemas_saude: "",
     // professor
     especializacao: "",

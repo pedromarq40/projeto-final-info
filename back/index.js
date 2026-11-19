@@ -1,3 +1,4 @@
+
 import express from 'express'
 import morgan from 'morgan'
 import helmet from 'helmet'
@@ -18,14 +19,16 @@ import assinaturaRouter from './routes/assinaturaRoute.js'
 import db from './sql/db.js'
 
 const app = express()
+
 app.use(helmet())
 app.use(express.json())
 app.use(morgan('dev'))
 app.use(cookieParser())
+
 app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true,
-}));
+    origin: ['http://localhost:5174', 'http://localhost:5175'],
+    credentials: true
+}))
 
 app.use('/professores', professorRouter)
 app.use('/alunos', alunoRouter)
@@ -37,30 +40,34 @@ app.use('/planos', planoRouter)
 app.use('/mensalidades', mensalidadeRouter)
 app.use('/assinaturas', assinaturaRouter)
 
-app.get("/auth/me", auth, async (req, res) => {
-  try {
-    const { id, role } = req.user;
-    const tabela = role === "professor" ? "professor" : "aluno";
-    
-    const [rows] = await db.execute(
-      `SELECT CPF, nome_completo, email, telefone FROM ${tabela} WHERE CPF = ?`,
-      [id]
-    );
+app.get('/auth/me', auth, async (req, res) => {
+    try {
+        const { id, role } = req.user
+        const tabela = role === 'professor' ? 'professor' : 'aluno'
 
-    if (rows.length === 0) {
-      return res.status(401).json({ message: "Usuário não encontrado." });
+        const [rows] = await db.execute(
+            `SELECT CPF, nome_completo, email, telefone FROM ${tabela} WHERE CPF = ?`,
+            [id]
+        )
+
+        if (rows.length === 0) {
+            return res.status(401).json({
+                message: 'Usuário não encontrado.'
+            })
+        }
+
+        res.json({ user: { ...rows[0], role } })
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({
+            message: 'Erro ao buscar usuário.'
+        })
     }
-
-    res.json({ user: { ...rows[0], role } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erro ao buscar usuário." });
-  }
 })
 
-const PORT  = process.env.PORT
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
-    console.log("\n", `Servidor rodando em http://localhost:${PORT}`, "\n")
+    console.log('\n', `Servidor rodando em http://localhost:${PORT}`, '\n')
     console.table(endpoints)
 })
