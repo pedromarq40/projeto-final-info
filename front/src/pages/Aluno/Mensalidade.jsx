@@ -92,14 +92,15 @@ export default function Mensalidade({ user, setUser }) {
                                             <th className="px-4 py-3">Plano</th>
                                             <th className="px-4 py-3">Valor</th>
                                             <th className="px-4 py-3">Vencimento</th>
-                                            <th className="px-4 py-3">Pagamento</th>
+                                            <th className="px-4 py-3">Data do pagamento</th>
+                                            <th className="px-4 py-3">Status</th>
                                             <th className="px-4 py-3">Ação</th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
-                                        {mensalidades.map((mensalidade, index) => (
-                                            <tr key={index} className="border-b border-gray-100">
+                                        {mensalidades.map((mensalidade) => (
+                                            <tr key={`${mensalidade.data_geracao}-${mensalidade.id_plano}`} className="border-b border-gray-100">
                                                 <td className="px-4 py-3">
                                                     {mensalidade.plano}
                                                 </td>
@@ -113,10 +114,15 @@ export default function Mensalidade({ user, setUser }) {
                                                 </td>
 
                                                 <td className="px-4 py-3">
-                                                    {mensalidade.data_pagamento
-                                                        ? <span className="font-medium text-green-600">Pago</span>
-                                                        : <span className="font-medium text-red-600">Pendente</span>
-                                                    }
+                                                    {formatarData(mensalidade.data_pagamento)}
+                                                </td>
+
+                                                <td className={`px-4 py-3 font-medium ${
+                                                    mensalidade.status === 'paga' ? 'text-green-600' :
+                                                        mensalidade.status === 'atrasada' ? 'text-red-600' : 'text-amber-600'
+                                                }`}>
+                                                    {mensalidade.status === 'paga' ? 'Paga' :
+                                                        mensalidade.status === 'atrasada' ? 'Atrasada' : 'Pendente'}
                                                 </td>
 
                                                 <td className="px-4 py-3">

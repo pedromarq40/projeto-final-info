@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import api from './api/api.js'
@@ -7,13 +6,14 @@ import NotFound from './pages/NotFound.jsx'
 import Login from './pages/Login.jsx'
 import Cadastro from './pages/Cadastro.jsx'
 import Home from './pages/Home.jsx'
-import Alunos from './pages/professor/Alunos.jsx'
-import Planos from './pages/professor/Planos.jsx'
-import MeusDados from './pages/aluno/MeusDados.jsx'
-import FichaDeTreino from './pages/aluno/FichaDeTreino.jsx'
-import RegistrosDeTreino from './pages/aluno/RegistrosDeTreino.jsx'
-import Mensalidade from './pages/aluno/Mensalidade.jsx'
-import MeuPlano from './pages/aluno/MeuPlano.jsx'
+import Alunos from './pages/Professor/Alunos.jsx'
+import Planos from './pages/Professor/Planos.jsx'
+import Exercicios from './pages/Professor/Exercicios.jsx'
+import MeusDados from './pages/Aluno/MeusDados.jsx'
+import FichaDeTreino from './pages/Aluno/FichaDeTreino.jsx'
+import RegistrosDeTreino from './pages/Aluno/RegistrosDeTreino.jsx'
+import Mensalidade from './pages/Aluno/Mensalidade.jsx'
+import MeuPlano from './pages/Aluno/MeuPlano.jsx'
 
 export default function App() {
     const [user, setUser] = useState(undefined)
@@ -72,6 +72,16 @@ export default function App() {
                     element={
                         <Protected
                             children={<Planos user={user} setUser={setUser} />}
+                            condition={isAuth && user.role === "professor"}
+                        />
+                    }
+                />
+
+                <Route
+                    path="/professor/exercicios"
+                    element={
+                        <Protected
+                            children={<Exercicios user={user} setUser={setUser} />}
                             condition={isAuth && user.role === "professor"}
                         />
                     }

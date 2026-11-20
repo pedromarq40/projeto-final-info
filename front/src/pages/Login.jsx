@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import api from '../api/api.js'
@@ -27,17 +26,16 @@ export default function Login({ setUser }) {
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1fr_3fr]">
       {/* Lado esquerdo */}
-      <aside className="relative hidden items-center overflow-hidden bg-[#111310] p-16 lg:flex">
-
+      <aside className="relative hidden items-center overflow-hidden bg-[#111310] p-8 lg:flex">
         <div className="relative">
-          <div className="mb-12 text-xl font-extrabold tracking-tight">
+          <div className="mb-8 text-6xl font-extrabold tracking-tight">
             <span className="text-[#a6ee1f]">PULSO</span>
             <span className="text-white">FIT</span>
           </div>
 
-          <h1 className="text-6xl font-bold leading-[1.05] tracking-tight text-white">
+          <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-white">
             A sua jornada,
             <br />
             <span className="bg-gradient-to-r from-[#a6ee1f] to-[#5fd35f] bg-clip-text text-transparent">

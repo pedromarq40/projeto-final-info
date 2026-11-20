@@ -18,8 +18,13 @@ const formatarData = (data) => {
 const vazio = (valor, sufixo = "") =>
   valor === null || valor === undefined || valor === "" ? "—" : `${valor}${sufixo}`
 
+const formatarValor = (valor) =>
+  Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+
 export default function Alunos({ user, setUser }) {
   const [alunos, setAlunos] = useState([])
+  const [mensalidadesPorAluno, setMensalidadesPorAluno] = useState({})
+  const [assinaturasAtivas, setAssinaturasAtivas] = useState({})
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState("")
   const [busca, setBusca] = useState("")
@@ -33,14 +38,30 @@ export default function Alunos({ user, setUser }) {
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState("")
   const [erroFormulario, setErroFormulario] = useState("")
+  const [alunoFinanceiro, setAlunoFinanceiro] = useState(null)
 
   useEffect(() => {
     async function carregar() {
       try {
-        const { data } = await api.get("/alunos")
-        setAlunos(data)
+        const [respostaAlunos, respostaMensalidades] = await Promise.all([
+          api.get("/alunos"),
+          api.get("/mensalidades/alunos")
+        ])
+        const porAluno = {}
+        const assinaturas = {}
+
+        respostaMensalidades.data.forEach((mensalidade) => {
+          assinaturas[mensalidade.CPF] = Boolean(mensalidade.assinatura_ativa)
+          if (!mensalidade.data_geracao) return
+          if (!porAluno[mensalidade.CPF]) porAluno[mensalidade.CPF] = []
+          porAluno[mensalidade.CPF].push(mensalidade)
+        })
+
+        setAlunos(respostaAlunos.data)
+        setMensalidadesPorAluno(porAluno)
+        setAssinaturasAtivas(assinaturas)
       } catch (error) {
-        setErro(error.response?.data?.error || "Não foi possível carregar os alunos.")
+        setErro(error.response?.data?.error || "Não foi possível carregar os alunos e suas mensalidades.")
       } finally {
         setCarregando(false)
       }
@@ -190,30 +211,58 @@ export default function Alunos({ user, setUser }) {
                     <th className="px-5 py-4">Peso</th>
                     <th className="px-5 py-4">Problemas de saúde</th>
                     <th className="px-5 py-4">Cadastro</th>
+                    <th className="px-5 py-4">Assinatura</th>
+                    <th className="px-5 py-4">Mensalidades</th>
                     <th className="px-5 py-4">Ação</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtrados.map((a) => (
-                    <tr key={a.CPF} className="border-b border-[#111310]/5 transition-colors last:border-0 hover:bg-gray-100">
-                      <td className="px-5 py-4 font-semibold">{a.nome_completo}</td>
-                      <td className="px-5 py-4 text-[#111310]/70">{formatarCPF(a.CPF)}</td>
-                      <td className="px-5 py-4 text-[#111310]/70">{a.email}</td>
-                      <td className="px-5 py-4 text-[#111310]/70">{formatarTelefone(a.telefone)}</td>
-                      <td className="px-5 py-4 text-[#111310]/70">{vazio(a.altura, " m")}</td>
-                      <td className="px-5 py-4 text-[#111310]/70">{vazio(a.peso, " kg")}</td>
-                      <td className="px-5 py-4 text-[#111310]/70">{vazio(a.problemas_saude)}</td>
-                      <td className="px-5 py-4 text-[#111310]/70">{formatarData(a.data_criacao)}</td>
-                      <td className="px-5 py-4">
-                        <button
-                          onClick={() => abrirFormulario(a)}
-                          className="whitespace-nowrap rounded-lg bg-[#a6ee1f] px-4 py-2 text-xs font-bold text-[#111310] transition hover:bg-[#91d719]"
-                        >
-                          Criar ficha
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filtrados.map((a) => {
+                    const mensalidades = mensalidadesPorAluno[a.CPF] || []
+                    const atrasadas = mensalidades.filter((m) => m.status === "atrasada").length
+                    const pagas = mensalidades.filter((m) => m.status === "paga").length
+                    const assinaturaAtiva = assinaturasAtivas[a.CPF]
+
+                    return (
+                      <tr key={a.CPF} className="border-b border-[#111310]/5 transition-colors last:border-0 hover:bg-gray-100">
+                        <td className="px-5 py-4 font-semibold">{a.nome_completo}</td>
+                        <td className="px-5 py-4 text-[#111310]/70">{formatarCPF(a.CPF)}</td>
+                        <td className="px-5 py-4 text-[#111310]/70">{a.email}</td>
+                        <td className="px-5 py-4 text-[#111310]/70">{formatarTelefone(a.telefone)}</td>
+                        <td className="px-5 py-4 text-[#111310]/70">{vazio(a.altura, " m")}</td>
+                        <td className="px-5 py-4 text-[#111310]/70">{vazio(a.peso, " kg")}</td>
+                        <td className="px-5 py-4 text-[#111310]/70">{vazio(a.problemas_saude)}</td>
+                        <td className="px-5 py-4 text-[#111310]/70">{formatarData(a.data_criacao)}</td>
+                        <td className={`px-5 py-4 font-medium ${assinaturaAtiva ? "text-green-700" : "text-[#111310]/50"}`}>
+                          {assinaturaAtiva ? "Ativa" : "Sem plano vigente"}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className={atrasadas > 0 ? "font-bold text-red-700" : "font-medium text-green-700"}>
+                            {atrasadas} atrasada{atrasadas === 1 ? "" : "s"}
+                          </span>
+                          <p className="mt-1 text-xs text-[#111310]/60">{pagas} paga{pagas === 1 ? "" : "s"}</p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col items-start gap-2">
+                            <button
+                              onClick={() => setAlunoFinanceiro(a)}
+                              className="whitespace-nowrap rounded-lg border border-[#111310]/15 px-4 py-2 text-xs font-bold transition hover:bg-gray-100"
+                            >
+                              Mensalidades
+                            </button>
+                            <button
+                              onClick={() => abrirFormulario(a)}
+                              disabled={!assinaturaAtiva}
+                              title={!assinaturaAtiva ? "O aluno precisa de uma assinatura vigente" : undefined}
+                              className="whitespace-nowrap rounded-lg bg-[#a6ee1f] px-4 py-2 text-xs font-bold text-[#111310] transition hover:bg-[#91d719] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              Criar ficha
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -294,6 +343,55 @@ export default function Alunos({ user, setUser }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {alunoFinanceiro && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+          <div className="my-auto w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Mensalidades</h2>
+                <p className="mt-1 text-sm text-gray-500">Aluno: {alunoFinanceiro.nome_completo}</p>
+              </div>
+              <button onClick={() => setAlunoFinanceiro(null)} className="rounded-lg px-3 py-1 text-xl text-gray-500 hover:bg-gray-100">×</button>
+            </div>
+
+            {(mensalidadesPorAluno[alunoFinanceiro.CPF] || []).length === 0 ? (
+              <p className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500">Nenhuma mensalidade cadastrada.</p>
+            ) : (
+              <div className="max-h-[60vh] overflow-auto">
+                <table className="w-full min-w-[600px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-500">
+                      <th className="px-3 py-3">Plano</th>
+                      <th className="px-3 py-3">Valor</th>
+                      <th className="px-3 py-3">Vencimento</th>
+                      <th className="px-3 py-3">Pagamento</th>
+                      <th className="px-3 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(mensalidadesPorAluno[alunoFinanceiro.CPF] || []).map((mensalidade) => (
+                      <tr key={`${mensalidade.data_geracao}-${mensalidade.id_plano}`} className="border-b border-gray-100">
+                        <td className="px-3 py-3">{mensalidade.plano}</td>
+                        <td className="px-3 py-3">{formatarValor(mensalidade.valor)}</td>
+                        <td className="px-3 py-3">{formatarData(mensalidade.vencimento)}</td>
+                        <td className="px-3 py-3">{formatarData(mensalidade.data_pagamento)}</td>
+                        <td className={`px-3 py-3 font-semibold ${
+                          mensalidade.status === "paga" ? "text-green-700" :
+                          mensalidade.status === "atrasada" ? "text-red-700" : "text-amber-700"
+                        }`}>
+                          {mensalidade.status === "paga" ? "Paga" :
+                            mensalidade.status === "atrasada" ? "Atrasada" : "Pendente"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
