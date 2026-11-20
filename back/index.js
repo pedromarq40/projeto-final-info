@@ -1,4 +1,3 @@
-
 import express from 'express'
 import morgan from 'morgan'
 import helmet from 'helmet'
@@ -26,7 +25,7 @@ app.use(morgan('dev'))
 app.use(cookieParser())
 
 app.use(cors({
-    origin: ['http://localhost:5174', 'http://localhost:5175'],
+    origin: 'http://localhost:5173',
     credentials: true
 }))
 

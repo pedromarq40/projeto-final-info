@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS professor(
     email VARCHAR(35) NOT NULL UNIQUE,
     nome_completo VARCHAR(40) NOT NULL,
     telefone VARCHAR(11) NOT NULL,
-    data_criacao DATE NOT NULL,
+    data_criacao DATE NOT NULL DEFAULT (NOW()),
     senha VARCHAR(255) NOT NULL,
     especializacao VARCHAR(20) NOT NULL
 );

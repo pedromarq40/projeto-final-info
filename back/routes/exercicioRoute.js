@@ -1,12 +1,12 @@
 import express from 'express'
 import { ExercicioController } from '../controllers/allControllers.js'
-import{ auth, inverseAuth } from '../auth/auth.js'
+import { auth } from '../auth/auth.js'
 
 const router = express.Router()
-router.get('/', (req, res) => ExercicioController.listarTodos(req, res), auth)
-router.get('/campo', (req, res) => ExercicioController.listarPorCampo(req, res), auth)
-router.post('/', (req, res) => ExercicioController.inserir(req, res), auth)
-router.put('/', (req, res) => ExercicioController.atualizar(req, res), auth)
-router.delete('/', (req, res) => ExercicioController.deletar(req, res), auth)
+router.get('/', auth, (req, res) => ExercicioController.listarTodos(req, res))
+router.get('/campo', auth, (req, res) => ExercicioController.listarPorCampo(req, res))
+router.post('/', auth, (req, res) => ExercicioController.criar(req, res))
+router.put('/:id', auth, (req, res) => ExercicioController.atualizarExercicio(req, res))
+router.delete('/:id', auth, (req, res) => ExercicioController.deletarExercicio(req, res))
 
 export default router

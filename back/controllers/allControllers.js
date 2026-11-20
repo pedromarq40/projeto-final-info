@@ -219,6 +219,144 @@ export class ExercicioController extends BaseController {
     static {
         this.definirModel(new ExercicioModel())
     }
+
+    static async criar(req, res) {
+        if (req.user.role !== 'professor') {
+            return res.status(403).json({
+                error: 'Acesso permitido somente para professores'
+            })
+        }
+
+        const nome = typeof req.body.nome === 'string' ? req.body.nome.trim() : ''
+        const video = typeof req.body.video === 'string' ? req.body.video.trim() : ''
+
+        if (!nome || nome.length > 20 || video.length > 260) {
+            return res.status(400).json({
+                error: 'Informe um nome com até 20 caracteres e um vídeo com até 260 caracteres'
+            })
+        }
+
+        if (video) {
+            try {
+                const url = new URL(video)
+                if (!['http:', 'https:'].includes(url.protocol)) throw new Error()
+            } catch {
+                return res.status(400).json({
+                    error: 'Informe uma URL válida para o vídeo'
+                })
+            }
+        }
+
+        try {
+            const [ids] = await this.model.db.execute(
+                'SELECT COALESCE(MAX(id_exercicio), 0) + 1 AS id_exercicio FROM exercicio'
+            )
+            const id_exercicio = ids[0].id_exercicio
+
+            await this.model.inserir({
+                id_exercicio,
+                nome,
+                video: video || null
+            })
+
+            return res.status(201).json({
+                message: 'Exercício cadastrado com sucesso',
+                id_exercicio
+            })
+        } catch (err) {
+            if (err.message.includes('Duplicate entry')) {
+                return res.status(409).json({
+                    error: 'Não foi possível gerar um identificador. Tente novamente.'
+                })
+            }
+
+            return res.status(500).json({ error: err.message })
+        }
+    }
+
+    static async atualizarExercicio(req, res) {
+        if (req.user.role !== 'professor') {
+            return res.status(403).json({
+                error: 'Acesso permitido somente para professores'
+            })
+        }
+
+        const id_exercicio = Number(req.params.id)
+        const nome = typeof req.body.nome === 'string' ? req.body.nome.trim() : ''
+        const video = typeof req.body.video === 'string' ? req.body.video.trim() : ''
+
+        if (!Number.isInteger(id_exercicio) || id_exercicio < 1) {
+            return res.status(400).json({ error: 'Identificador de exercício inválido' })
+        }
+
+        if (!nome || nome.length > 20 || video.length > 260) {
+            return res.status(400).json({
+                error: 'Informe um nome com até 20 caracteres e um vídeo com até 260 caracteres'
+            })
+        }
+
+        if (video) {
+            try {
+                const url = new URL(video)
+                if (!['http:', 'https:'].includes(url.protocol)) throw new Error()
+            } catch {
+                return res.status(400).json({
+                    error: 'Informe uma URL válida para o vídeo'
+                })
+            }
+        }
+
+        try {
+            const [exercicios] = await this.model.db.execute(
+                'SELECT id_exercicio FROM exercicio WHERE id_exercicio = ?',
+                [id_exercicio]
+            )
+
+            if (exercicios.length === 0) {
+                return res.status(404).json({ error: 'Exercício não encontrado' })
+            }
+
+            await this.model.atualizar(
+                { nome, video: video || null },
+                { id_exercicio }
+            )
+
+            return res.json({ message: 'Exercício atualizado com sucesso' })
+        } catch (err) {
+            return res.status(500).json({ error: err.message })
+        }
+    }
+
+    static async deletarExercicio(req, res) {
+        if (req.user.role !== 'professor') {
+            return res.status(403).json({
+                error: 'Acesso permitido somente para professores'
+            })
+        }
+
+        const id_exercicio = Number(req.params.id)
+        if (!Number.isInteger(id_exercicio) || id_exercicio < 1) {
+            return res.status(400).json({ error: 'Identificador de exercício inválido' })
+        }
+
+        try {
+            const resultado = await this.model.deletar({ id_exercicio })
+
+            if (resultado.affectedRows === 0) {
+                return res.status(404).json({ error: 'Exercício não encontrado' })
+            }
+
+            return res.json({ message: 'Exercício excluído com sucesso' })
+        } catch (err) {
+            if (err.message.includes('foreign key constraint fails')) {
+                return res.status(409).json({
+                    error: 'Este exercício está associado a uma ficha de treino e não pode ser excluído'
+                })
+            }
+
+            return res.status(500).json({ error: err.message })
+        }
+    }
 }
 
 export class FichaDeTreinoController extends BaseController {
@@ -271,6 +409,19 @@ export class FichaDeTreinoController extends BaseController {
             ) {
                 return res.status(400).json({
                     error: 'Preencha os dados da ficha e adicione pelo menos um exercício'
+                })
+            }
+
+            const [assinaturas] = await this.model.db.execute(
+                `SELECT id_assinatura
+                 FROM assinatura
+                 WHERE CPF = ? AND data_vencimento >= CURDATE()`,
+                [CPF]
+            )
+
+            if (assinaturas.length === 0) {
+                return res.status(409).json({
+                    error: 'O aluno precisa ter uma assinatura vigente para receber uma ficha de treino'
                 })
             }
 
@@ -436,16 +587,57 @@ export class MensalidadeController extends BaseController {
             }
 
             const [mensalidades] = await this.model.db.execute(
-                `SELECT m.*, p.nome AS plano
+                `SELECT DATE_FORMAT(m.data_geracao, '%Y-%m-%d') AS data_geracao,
+                        m.CPF, m.id_plano, m.valor, m.vencimento, m.data_pagamento,
+                        p.nome AS plano,
+                        CASE
+                            WHEN m.data_pagamento IS NOT NULL THEN 'paga'
+                            WHEN m.vencimento < CURDATE() THEN 'atrasada'
+                            ELSE 'pendente'
+                        END AS status
                  FROM mensalidade m
                  JOIN plano p ON p.id_plano = m.id_plano
                  WHERE m.CPF = ?
-                 ORDER BY m.vencimento DESC`,
+                 ORDER BY m.vencimento ASC`,
                 [req.user.id]
             )
 
             res.json(mensalidades)
 
+        } catch (err) {
+            res.status(500).json({ error: err.message })
+        }
+    }
+
+    static async mensalidadesDosAlunos(req, res) {
+        try {
+            if (req.user.role !== 'professor') {
+                return res.status(403).json({
+                    error: 'Acesso permitido somente para professores'
+                })
+            }
+
+            const [mensalidades] = await this.model.db.execute(
+                `SELECT a.CPF, a.nome_completo,
+                        EXISTS(
+                            SELECT 1 FROM assinatura s
+                            WHERE s.CPF = a.CPF AND s.data_vencimento >= CURDATE()
+                        ) AS assinatura_ativa,
+                        m.data_geracao, m.id_plano,
+                        m.valor, m.vencimento, m.data_pagamento,
+                        p.nome AS plano,
+                        CASE
+                            WHEN m.data_pagamento IS NOT NULL THEN 'paga'
+                            WHEN m.vencimento < CURDATE() THEN 'atrasada'
+                            ELSE 'pendente'
+                        END AS status
+                 FROM aluno a
+                 LEFT JOIN mensalidade m ON m.CPF = a.CPF
+                 LEFT JOIN plano p ON p.id_plano = m.id_plano
+                 ORDER BY a.nome_completo, m.vencimento DESC`
+            )
+
+            res.json(mensalidades)
         } catch (err) {
             res.status(500).json({ error: err.message })
         }
@@ -459,9 +651,15 @@ export class MensalidadeController extends BaseController {
                 })
             }
 
-            const { data_geracao, id_plano } = req.body
+            const { data_geracao } = req.body
+            const id_plano = Number(req.body.id_plano)
 
-            if (!data_geracao || !id_plano) {
+            if (
+                typeof data_geracao !== 'string' ||
+                !/^\d{4}-\d{2}-\d{2}$/.test(data_geracao) ||
+                !Number.isInteger(id_plano) ||
+                id_plano < 1
+            ) {
                 return res.status(400).json({
                     error: 'Informe a mensalidade que deseja pagar'
                 })
@@ -507,7 +705,8 @@ export class AssinaturaController extends BaseController {
             }
 
             const [assinatura] = await this.model.db.execute(
-                `SELECT a.*, p.nome, p.valor_mensal
+                `SELECT a.*, p.nome, p.valor_mensal,
+                        TIMESTAMPDIFF(MONTH, a.data_assinatura, a.data_vencimento) AS duracao_meses
                  FROM assinatura a
                  JOIN plano p ON p.id_plano = a.id_plano
                  WHERE a.CPF = ?`,
@@ -521,9 +720,7 @@ export class AssinaturaController extends BaseController {
         }
     }
 
-   
-static async trocar(req, res) {
-    try {
+    static async trocar(req, res) {
         if (req.user.role !== 'aluno') {
             return res.status(403).json({
                 error: 'Acesso somente para alunos'
@@ -531,76 +728,104 @@ static async trocar(req, res) {
         }
 
         const id_plano = Number(req.body.id_plano)
+        const duracao_meses = Number(req.body.duracao_meses)
 
-        if (!id_plano) {
+        if (!Number.isInteger(id_plano) || id_plano < 1) {
             return res.status(400).json({
                 error: 'Selecione um plano'
             })
         }
 
-        const [planos] = await this.model.db.execute(
-            `SELECT id_plano, valor_mensal
-             FROM plano
-             WHERE id_plano = ? AND efetivo = TRUE`,
-            [id_plano]
-        )
-
-        if (planos.length === 0) {
-            return res.status(404).json({
-                error: 'Plano não encontrado'
+        if (!Number.isInteger(duracao_meses) || duracao_meses < 1 || duracao_meses > 24) {
+            return res.status(400).json({
+                error: 'A duração deve ser de 1 a 24 meses'
             })
         }
 
-        const [atual] = await this.model.db.execute(
-            'SELECT id_assinatura FROM assinatura WHERE CPF = ?',
-            [req.user.id]
-        )
+        const conexao = await this.model.db.getConnection()
 
-        if (atual.length > 0) {
-            await this.model.db.execute(
-                `UPDATE assinatura
-                 SET id_plano = ?
-                 WHERE CPF = ?`,
-                [id_plano, req.user.id]
+        try {
+            await conexao.beginTransaction()
+
+            const [planos] = await conexao.execute(
+                `SELECT id_plano, valor_mensal
+                 FROM plano
+                 WHERE id_plano = ? AND efetivo = TRUE`,
+                [id_plano]
             )
-        } else {
-            await this.model.db.execute(
-                `INSERT INTO assinatura
-                 (id_plano, CPF, data_assinatura, data_vencimento)
-                 VALUES (?, ?, CURDATE(),
-                 DATE_ADD(CURDATE(), INTERVAL 1 MONTH))`,
-                [id_plano, req.user.id]
+
+            if (planos.length === 0) {
+                await conexao.rollback()
+                return res.status(404).json({
+                    error: 'Plano não encontrado'
+                })
+            }
+
+            const [atuais] = await conexao.execute(
+                `SELECT id_assinatura, data_vencimento >= CURDATE() AS ativa
+                 FROM assinatura
+                 WHERE CPF = ?
+                 FOR UPDATE`,
+                [req.user.id]
             )
+
+            if (atuais.length > 0 && atuais[0].ativa) {
+                await conexao.rollback()
+                return res.status(409).json({
+                    error: 'Você já possui uma assinatura vigente'
+                })
+            }
+
+            if (atuais.length > 0) {
+                await conexao.execute(
+                    `UPDATE assinatura
+                     SET id_plano = ?, data_assinatura = CURDATE(),
+                         data_vencimento = DATE_ADD(CURDATE(), INTERVAL ? MONTH)
+                     WHERE CPF = ?`,
+                    [id_plano, duracao_meses, req.user.id]
+                )
+            } else {
+                await conexao.execute(
+                    `INSERT INTO assinatura
+                     (id_plano, CPF, data_assinatura, data_vencimento)
+                     VALUES (?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL ? MONTH))`,
+                    [id_plano, req.user.id, duracao_meses]
+                )
+            }
+
+            for (let parcela = 1; parcela <= duracao_meses; parcela += 1) {
+                await conexao.execute(
+                    `INSERT INTO mensalidade
+                     (data_geracao, CPF, id_plano, valor, vencimento, data_pagamento)
+                     VALUES (
+                         DATE_ADD(CURDATE(), INTERVAL ? MONTH),
+                         ?, ?, ?,
+                         DATE_ADD(CURDATE(), INTERVAL ? MONTH),
+                         NULL
+                     )`,
+                    [
+                        parcela - 1,
+                        req.user.id,
+                        id_plano,
+                        planos[0].valor_mensal,
+                        parcela
+                    ]
+                )
+            }
+
+            await conexao.commit()
+            return res.status(201).json({
+                message: 'Assinatura e mensalidades cadastradas com sucesso',
+                duracao_meses
+            })
+        } catch (err) {
+            await conexao.rollback()
+            return res.status(500).json({
+                error: err.message
+            })
+        } finally {
+            conexao.release()
         }
-
-        const [assinaturas] = await this.model.db.execute(
-            `SELECT data_vencimento
-             FROM assinatura
-             WHERE CPF = ?`,
-            [req.user.id]
-        )
-
-        await this.model.db.execute(
-            `INSERT IGNORE INTO mensalidade
-             (data_geracao, CPF, id_plano, valor, vencimento, data_pagamento)
-             VALUES (CURDATE(), ?, ?, ?, ?, NULL)`,
-            [
-                req.user.id,
-                id_plano,
-                planos[0].valor_mensal,
-                assinaturas[0].data_vencimento
-            ]
-        )
-
-        return res.json({
-            message: 'Assinatura e mensalidade cadastradas com sucesso'
-        })
-    
-    } catch (err) {
-        return res.status(500).json({
-            error: err.message
-        })
     }
-}
 
 }
