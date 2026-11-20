@@ -18,3 +18,9 @@
 **Tarefa**: Gerenciamento de usuários e planos para o professor<br>
 **Descrição**: Um professor agora pode: visualizar e buscar alunos, visualizar, criar, editar e 'excluir' planos<br><hr>
 
+**Data**: 10/11/2026<br>
+**Tarefa**: CRUD de exercícios para professor + funcionalidades de assinatura e mensalidades<br>
+**Descrição**: Professor agora tem: CRUD de exercícios, visualização das mensalidades dos alunos, não pode criar ficha de treino pra aluno com
+mensalidade atrasda. Aluno agora tem: assinatura de plano e troca de assinatura, gerenciamento das próprias mensalidades.
+
+
