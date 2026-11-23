@@ -7,7 +7,8 @@ class ExercicioFichaModel extends BaseModel {
             'id_ficha',
             'carga',
             'series',
-            'repeticoes'
+            'repeticoes',
+            'ordem'
         ])
     }
 

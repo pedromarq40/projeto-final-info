@@ -29,7 +29,9 @@ export default function Alunos({ user, setUser }) {
   const [erro, setErro] = useState("")
   const [busca, setBusca] = useState("")
   const [alunoSelecionado, setAlunoSelecionado] = useState(null)
-  const [exercicios, setExercicios] = useState([])
+  const [buscaExercicio, setBuscaExercicio] = useState("")
+  const [exerciciosEncontrados, setExerciciosEncontrados] = useState([])
+  const [dropdownAberto, setDropdownAberto] = useState(false)
   const [selecionados, setSelecionados] = useState({})
   const [foco, setFoco] = useState("")
   const [tipo, setTipo] = useState("")
@@ -39,6 +41,7 @@ export default function Alunos({ user, setUser }) {
   const [mensagem, setMensagem] = useState("")
   const [erroFormulario, setErroFormulario] = useState("")
   const [alunoFinanceiro, setAlunoFinanceiro] = useState(null)
+  const [fichaEmEdicao, setFichaEmEdicao] = useState(false)
 
   useEffect(() => {
     async function carregar() {
@@ -74,39 +77,90 @@ export default function Alunos({ user, setUser }) {
     setErroFormulario("")
     setMensagem("")
     setSelecionados({})
+    setFichaEmEdicao(false)
     setFoco("")
     setTipo("")
     setValidade("")
-    setCarregandoExercicios(true)
+    setBuscaExercicio("")
+    setExerciciosEncontrados([])
+    setDropdownAberto(false)
+    setCarregandoExercicios(false)
 
     try {
-      const { data } = await api.get("/exercicios")
-      setExercicios(data)
+      const { data } = await api.get(`/fichas-de-treino/editar/${aluno.CPF}`)
+      setFichaEmEdicao(true)
+      setFoco(data.ficha.foco)
+      setTipo(data.ficha.tipo)
+
+      if (data.ficha.validade) {
+        const validade = new Date(data.ficha.validade)
+        setValidade(validade.toISOString().slice(0, 10))
+      } else {
+        setValidade("")
+      }
+
+      const exerciciosPreenchidos = {}
+
+      data.exercicios.forEach((exercicio) => {
+        if (!exercicio.id_exercicio) {
+          return
+        }
+
+        exerciciosPreenchidos[exercicio.id_exercicio] = {
+          id_exercicio: exercicio.id_exercicio,
+          nome: exercicio.nome,
+          carga: exercicio.carga,
+          series: exercicio.series,
+          repeticoes: exercicio.repeticoes,
+          ordem: exercicio.ordem
+        }
+      })
+
+      setSelecionados(exerciciosPreenchidos)
     } catch (error) {
-      setErroFormulario(error.response?.data?.error || "Não foi possível carregar os exercícios.")
-    } finally {
-      setCarregandoExercicios(false)
+      if (error.response?.status !== 404) {
+        setErroFormulario(error.response?.data?.error || "Não foi possível carregar a ficha de treino.")
+      }
     }
   }
 
   function fecharFormulario() {
     setAlunoSelecionado(null)
     setSelecionados({})
+    setFichaEmEdicao(false)
+    setBuscaExercicio("")
+    setExerciciosEncontrados([])
+    setDropdownAberto(false)
     setErroFormulario("")
     setMensagem("")
   }
 
   function alternarExercicio(exercicio) {
     const id = exercicio.id_exercicio
-    setSelecionados((anteriores) => {
-      const novos = { ...anteriores }
-      if (novos[id]) {
-        delete novos[id]
-      } else {
-        novos[id] = { id_exercicio: id, carga: "", series: "", repeticoes: "" }
-      }
-      return novos
-    })
+    const selecionado = selecionados[id]
+
+    if (selecionado) {
+      const novos = { ...selecionados }
+      delete novos[id]
+      setSelecionados(normalizarOrdens(novos))
+    } else {
+      const quantidade = Object.keys(selecionados).length
+      setSelecionados({
+        ...selecionados,
+        [id]: {
+          id_exercicio: id,
+          nome: exercicio.nome,
+          carga: "",
+          series: "",
+          repeticoes: "",
+          ordem: quantidade + 1
+        }
+      })
+    }
+
+    setBuscaExercicio("")
+    setExerciciosEncontrados([])
+    setDropdownAberto(false)
   }
 
   function alterarExercicio(id, campo, valor) {
@@ -115,6 +169,84 @@ export default function Alunos({ user, setUser }) {
       [id]: { ...anteriores[id], [campo]: valor }
     }))
   }
+
+  function normalizarOrdens(itens) {
+    const ordenados = Object.values(itens)
+      .sort((a, b) => a.ordem - b.ordem)
+
+    const normalizados = {}
+
+    ordenados.forEach((item, indice) => {
+      normalizados[item.id_exercicio] = {
+        ...item,
+        ordem: indice + 1
+      }
+    })
+
+    return normalizados
+  }
+
+  function moverExercicio(id, direcao) {
+    const ordenados = Object.values(selecionados)
+      .sort((a, b) => a.ordem - b.ordem)
+    const indice = ordenados.findIndex((item) => item.id_exercicio === id)
+    const novoIndice = indice + direcao
+
+    if (indice < 0) {
+      return
+    }
+
+    if (novoIndice < 0) {
+      return
+    }
+
+    if (novoIndice >= ordenados.length) {
+      return
+    }
+
+    const itemAtual = ordenados[indice]
+    ordenados[indice] = ordenados[novoIndice]
+    ordenados[novoIndice] = itemAtual
+
+    const novos = {}
+    ordenados.forEach((item, index) => {
+      novos[item.id_exercicio] = {
+        ...item,
+        ordem: index + 1
+      }
+    })
+
+    setSelecionados(novos)
+  }
+
+  useEffect(() => {
+    if (!buscaExercicio.trim()) {
+      return
+    }
+
+    const timeout = setTimeout(async () => {
+      setCarregandoExercicios(true)
+
+      try {
+        const { data } = await api.get("/exercicios", {
+          params: {
+            pagina: 1,
+            limite: 10,
+            nome: buscaExercicio.trim()
+          }
+        })
+        setExerciciosEncontrados(data.dados)
+        setDropdownAberto(true)
+        setErroFormulario("")
+      } catch (error) {
+        setErroFormulario(error.response?.data?.error || "Não foi possível pesquisar exercícios.")
+      } finally {
+        setCarregandoExercicios(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timeout)
+  }, [buscaExercicio])
 
   async function criarFicha(e) {
     e.preventDefault()
@@ -128,10 +260,27 @@ export default function Alunos({ user, setUser }) {
       return
     }
 
-    const exerciciosInvalidos = listaExercicios.some((ex) =>
-      ex.carga === "" || ex.series === "" || ex.repeticoes === "" ||
-      Number(ex.carga) < 0 || Number(ex.series) <= 0 || Number(ex.repeticoes) <= 0
-    )
+    const exerciciosInvalidos = listaExercicios.some((ex) => {
+      if (ex.carga === "") {
+        return true
+      }
+      if (ex.series === "") {
+        return true
+      }
+      if (ex.repeticoes === "") {
+        return true
+      }
+      if (Number(ex.carga) < 0) {
+        return true
+      }
+      if (Number(ex.series) <= 0) {
+        return true
+      }
+      if (Number(ex.repeticoes) <= 0) {
+        return true
+      }
+      return false
+    })
 
     if (exerciciosInvalidos) {
       setErroFormulario("Preencha corretamente carga, séries e repetições de cada exercício.")
@@ -147,14 +296,20 @@ export default function Alunos({ user, setUser }) {
         id_exercicio: ex.id_exercicio,
         carga: Number(ex.carga),
         series: Number(ex.series),
-        repeticoes: Number(ex.repeticoes)
+        repeticoes: Number(ex.repeticoes),
+        ordem: ex.ordem
       }))
     }
 
     setSalvando(true)
     try {
-      await api.post("/fichas-de-treino/criar", dados)
-      setMensagem("Ficha de treino criada com sucesso!")
+      if (fichaEmEdicao) {
+        await api.put(`/fichas-de-treino/editar/${alunoSelecionado.CPF}`, dados)
+        setMensagem("Ficha de treino atualizada com sucesso!")
+      } else {
+        await api.post("/fichas-de-treino/criar", dados)
+        setMensagem("Ficha de treino criada com sucesso!")
+      }
       setTimeout(() => fecharFormulario(), 1500)
     } catch (error) {
       setErroFormulario(error.response?.data?.error || "Não foi possível criar a ficha.")
@@ -275,7 +430,12 @@ export default function Alunos({ user, setUser }) {
           <div className="my-auto w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold">Criar ficha de treino</h2>
+                {fichaEmEdicao && (
+                  <h2 className="text-2xl font-bold">Editar ficha de treino</h2>
+                )}
+                {!fichaEmEdicao && (
+                  <h2 className="text-2xl font-bold">Criar ficha de treino</h2>
+                )}
                 <p className="mt-1 text-sm text-gray-500">Aluno: {alunoSelecionado.nome_completo}</p>
               </div>
               <button onClick={fecharFormulario} className="rounded-lg px-3 py-1 text-xl text-gray-500 hover:bg-gray-100">×</button>
@@ -299,38 +459,96 @@ export default function Alunos({ user, setUser }) {
 
               <div className="mt-6">
                 <h3 className="mb-3 font-bold">Exercícios</h3>
-                {carregandoExercicios ? (
-                  <p className="text-sm text-gray-500">Carregando exercícios...</p>
-                ) : exercicios.length === 0 ? (
-                  <p className="rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800">Nenhum exercício cadastrado.</p>
-                ) : (
-                  <div className="max-h-64 space-y-3 overflow-y-auto pr-2">
-                    {exercicios.map((ex) => (
-                      <div key={ex.id_exercicio} className="rounded-xl border border-gray-200 p-3">
-                        <label className="flex cursor-pointer items-center gap-2 font-semibold">
-                          <input type="checkbox" checked={!!selecionados[ex.id_exercicio]} onChange={() => alternarExercicio(ex)} className="h-4 w-4 accent-[#a6ee1f]" />
+                <div className="relative">
+                  <input
+                    type="search"
+                    value={buscaExercicio}
+                    onChange={(event) => {
+                      const valor = event.target.value
+                      setBuscaExercicio(valor)
+                      if (!valor.trim()) {
+                        setExerciciosEncontrados([])
+                        setDropdownAberto(false)
+                      }
+                    }}
+                    placeholder="Pesquisar exercício por nome"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-[#a6ee1f]"
+                  />
+
+                  {dropdownAberto && (
+                    <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                      {carregandoExercicios && (
+                        <p className="px-3 py-3 text-sm text-gray-500">Pesquisando...</p>
+                      )}
+                      {!carregandoExercicios && exerciciosEncontrados.length === 0 && (
+                        <p className="px-3 py-3 text-sm text-gray-500">Nenhum exercício encontrado.</p>
+                      )}
+                      {!carregandoExercicios && exerciciosEncontrados.map((ex) => (
+                        <button
+                          key={ex.id_exercicio}
+                          type="button"
+                          onClick={() => alternarExercicio(ex)}
+                          disabled={!!selecionados[ex.id_exercicio]}
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
                           {ex.nome}
-                        </label>
-                        {selecionados[ex.id_exercicio] && (
-                          <div className="mt-3 grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="mb-1 block text-xs text-gray-500">Carga (kg)</label>
-                              <input type="number" min="0" step="1" value={selecionados[ex.id_exercicio].carga} onChange={(e) => alterarExercicio(ex.id_exercicio, "carga", e.target.value)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm" required />
-                            </div>
-                            <div>
-                              <label className="mb-1 block text-xs text-gray-500">Séries</label>
-                              <input type="number" min="1" value={selecionados[ex.id_exercicio].series} onChange={(e) => alterarExercicio(ex.id_exercicio, "series", e.target.value)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm" required />
-                            </div>
-                            <div>
-                              <label className="mb-1 block text-xs text-gray-500">Repetições</label>
-                              <input type="number" min="1" value={selecionados[ex.id_exercicio].repeticoes} onChange={(e) => alterarExercicio(ex.id_exercicio, "repeticoes", e.target.value)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm" required />
-                            </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 max-h-72 space-y-3 overflow-y-auto pr-2">
+                  {Object.values(selecionados)
+                    .sort((a, b) => a.ordem - b.ordem)
+                    .map((ex) => (
+                      <div key={ex.id_exercicio} className="rounded-xl border border-gray-200 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-semibold">{ex.nome}</p>
+                          <button
+                            type="button"
+                            onClick={() => alternarExercicio(ex)}
+                            className="text-sm font-semibold text-red-700 hover:underline"
+                          >
+                            Remover
+                          </button>
+                        </div>
+
+                        <div className="mt-3 grid gap-2 sm:grid-cols-6">
+                          <div>
+                            <label className="mb-1 block text-xs text-gray-500">Ordem</label>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={ex.ordem}
+                              onChange={(event) => alterarExercicio(ex.id_exercicio, "ordem", Number(event.target.value))}
+                              className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm"
+                              required
+                            />
                           </div>
-                        )}
+                          <div>
+                            <label className="mb-1 block text-xs text-gray-500">Carga (kg)</label>
+                            <input type="number" min="0" step="1" value={ex.carga} onChange={(event) => alterarExercicio(ex.id_exercicio, "carga", event.target.value)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm" required />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-gray-500">Séries</label>
+                            <input type="number" min="1" value={ex.series} onChange={(event) => alterarExercicio(ex.id_exercicio, "series", event.target.value)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm" required />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-gray-500">Repetições</label>
+                            <input type="number" min="1" value={ex.repeticoes} onChange={(event) => alterarExercicio(ex.id_exercicio, "repeticoes", event.target.value)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm" required />
+                          </div>
+                          <div className="flex items-end">
+                            <button type="button" onClick={() => moverExercicio(ex.id_exercicio, -1)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm hover:bg-gray-100">Subir</button>
+                          </div>
+                          <div className="flex items-end">
+                            <button type="button" onClick={() => moverExercicio(ex.id_exercicio, 1)} className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm hover:bg-gray-100">Descer</button>
+                          </div>
+                        </div>
                       </div>
                     ))}
-                  </div>
-                )}
+                </div>
               </div>
 
               {erroFormulario && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{erroFormulario}</p>}
@@ -338,8 +556,10 @@ export default function Alunos({ user, setUser }) {
 
               <div className="mt-6 flex justify-end gap-3">
                 <button type="button" onClick={fecharFormulario} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-100">Cancelar</button>
-                <button type="submit" disabled={salvando || carregandoExercicios || exercicios.length === 0} className="rounded-lg bg-[#a6ee1f] px-5 py-2 text-sm font-bold text-[#111310] hover:bg-[#91d719] disabled:cursor-not-allowed disabled:opacity-50">
-                  {salvando ? "Salvando..." : "Salvar ficha"}
+                <button type="submit" disabled={salvando || Object.keys(selecionados).length === 0} className="rounded-lg bg-[#a6ee1f] px-5 py-2 text-sm font-bold text-[#111310] hover:bg-[#91d719] disabled:cursor-not-allowed disabled:opacity-50">
+                  {salvando && "Salvando..."}
+                  {!salvando && fichaEmEdicao && "Salvar alterações"}
+                  {!salvando && !fichaEmEdicao && "Salvar ficha"}
                 </button>
               </div>
             </form>
