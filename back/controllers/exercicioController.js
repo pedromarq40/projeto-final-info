@@ -34,16 +34,12 @@ class ExercicioController extends BaseController {
         }
 
         try {
-            const [ids] = await this.model.db.execute(
-                'SELECT COALESCE(MAX(id_exercicio), 0) + 1 AS id_exercicio FROM exercicio'
-            )
-            const id_exercicio = ids[0].id_exercicio
-
-            await this.model.inserir({
-                id_exercicio,
+            const resultado = await this.model.inserir({
                 nome,
                 video: video || null
             })
+
+            const id_exercicio = resultado.insertId
 
             return res.status(201).json({
                 message: 'Exercício cadastrado com sucesso',
@@ -93,10 +89,7 @@ class ExercicioController extends BaseController {
         }
 
         try {
-            const [exercicios] = await this.model.db.execute(
-                'SELECT id_exercicio FROM exercicio WHERE id_exercicio = ?',
-                [id_exercicio]
-            )
+            const exercicios = await this.model.listarPorCampo({ id_exercicio })
 
             if (exercicios.length === 0) {
                 return res.status(404).json({ error: 'Exercício não encontrado' })

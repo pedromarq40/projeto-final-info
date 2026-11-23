@@ -14,10 +14,7 @@ class RegistroDeTreinoController extends BaseController {
                 })
             }
 
-            const [fichas] = await this.model.db.execute(
-                'SELECT id_ficha FROM FichaDeTreino WHERE CPF = ?',
-                [req.user.id]
-            )
+            const fichas = await this.model.buscarFichaPorCpf(req.user.id)
 
             if (fichas.length === 0) {
                 return res.status(404).json({
@@ -25,13 +22,7 @@ class RegistroDeTreinoController extends BaseController {
                 })
             }
 
-            const [registros] = await this.model.db.execute(
-                `SELECT data_registro, hora, duracao
-                 FROM RegistroDeTreino
-                 WHERE id_ficha = ?
-                 ORDER BY data_registro DESC`,
-                [fichas[0].id_ficha]
-            )
+            const registros = await this.model.buscarPorFicha(fichas[0].id_ficha)
 
             res.status(200).json(registros)
 
@@ -56,10 +47,7 @@ class RegistroDeTreinoController extends BaseController {
                 })
             }
 
-            const [fichas] = await this.model.db.execute(
-                'SELECT id_ficha FROM FichaDeTreino WHERE CPF = ?',
-                [req.user.id]
-            )
+            const fichas = await this.model.buscarFichaPorCpf(req.user.id)
 
             if (fichas.length === 0) {
                 return res.status(404).json({

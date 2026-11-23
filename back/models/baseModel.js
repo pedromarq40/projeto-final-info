@@ -38,24 +38,29 @@ export default class BaseModel {
         }
     }
 
-    async listarPorCampo(campofunc){
-        const {campo, valor} = this.tratarDados(campofunc)
-        // campo é tipo {id : 1} ou {nome: 'João'}
-        try{
-            const [linhas] = await this.#db.execute(`SELECT * FROM ${this.tabela} WHERE ${campo} = ?`
-                ,valor
-            )
-                return linhas
-        }catch(error){
-            throw new Error(`Erro ao listar todos os registros: ${err.message}`)
-        }
-    }
-
     async listarPorCampo(campofunc) {
         const { colunas, valores } = this.tratarDados(campofunc)
+
+        if (colunas.length === 0) {
+            throw new Error('Filtro é obrigatório para listar registros.')
+        }
+
+        const colunasPermitidas = new Set(this.colunas)
+        const colunaInvalida = colunas.find(
+            coluna => !colunasPermitidas.has(coluna)
+        )
+
+        if (colunaInvalida) {
+            throw new Error(`Coluna inválida para busca: ${colunaInvalida}`)
+        }
+
+        const filtros = colunas
+            .map(coluna => `${coluna} = ?`)
+            .join(' AND ')
+
         try {
             const [linhas] = await this.#db.execute(
-                `SELECT * FROM ${this.tabela} WHERE ${colunas[0]} = ?`,
+                `SELECT * FROM ${this.tabela} WHERE ${filtros}`,
                 valores
             )
             return linhas

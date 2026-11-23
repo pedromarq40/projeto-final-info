@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS aluno(
 );
 
 CREATE TABLE IF NOT EXISTS exercicio(
-    id_exercicio INT PRIMARY KEY,
+    id_exercicio INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(20) NOT NULL,
     video VARCHAR(260)
 );

@@ -54,12 +54,7 @@ class FichaDeTreinoController extends BaseController {
                 })
             }
 
-            const [assinaturas] = await this.model.db.execute(
-                `SELECT id_assinatura
-                 FROM assinatura
-                 WHERE CPF = ? AND data_vencimento >= CURDATE()`,
-                [CPF]
-            )
+            const assinaturas = await this.model.buscarAssinaturaVigente(CPF)
 
             if (assinaturas.length === 0) {
                 return res.status(409).json({

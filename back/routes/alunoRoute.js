@@ -13,5 +13,6 @@ router.post('/login', inverseAuth, (req, res) => AlunoController.loginAluno(req,
 router.post('/logout', auth, (req, res) => AlunoController.logoutAluno(req, res))
 router.put('/meus-dados', auth, (req, res) => AlunoController.atualizarDados(req, res))
 router.get('/meus-dados', auth, (req, res) => AlunoController.meusDados(req, res))
+
 export default router
 

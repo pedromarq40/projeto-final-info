@@ -19,6 +19,7 @@ class FichaDeTreinoModel extends BaseModel {
                 new URL('../sql/buscar_ficha_com_exercicios.sql', import.meta.url),
                 'utf-8'
             )
+            
             const [resultado] = await this.db.execute(
                 buscarFichaComExerciciosQuery,
                 [CPF]
@@ -70,6 +71,16 @@ class FichaDeTreinoModel extends BaseModel {
         } catch (err) {
             throw new Error(`Erro ao criar ficha de treino: ${err.message}`)
         }
+    }
+
+    async buscarAssinaturaVigente(CPF) {
+        const [resultado] = await this.db.execute(
+            `SELECT id_assinatura
+             FROM assinatura
+             WHERE CPF = ? AND data_vencimento >= CURDATE()`,
+            [CPF]
+        )
+        return resultado
     }
 }
 

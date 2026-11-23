@@ -14,21 +14,7 @@ class MensalidadeController extends BaseController {
                 })
             }
 
-            const [mensalidades] = await this.model.db.execute(
-                `SELECT DATE_FORMAT(m.data_geracao, '%Y-%m-%d') AS data_geracao,
-                        m.CPF, m.id_plano, m.valor, m.vencimento, m.data_pagamento,
-                        p.nome AS plano,
-                        CASE
-                            WHEN m.data_pagamento IS NOT NULL THEN 'paga'
-                            WHEN m.vencimento < CURDATE() THEN 'atrasada'
-                            ELSE 'pendente'
-                        END AS status
-                 FROM mensalidade m
-                 JOIN plano p ON p.id_plano = m.id_plano
-                 WHERE m.CPF = ?
-                 ORDER BY m.vencimento ASC`,
-                [req.user.id]
-            )
+            const mensalidades = await this.model.listarDoAluno(req.user.id)
 
             res.json(mensalidades)
 
@@ -45,25 +31,7 @@ class MensalidadeController extends BaseController {
                 })
             }
 
-            const [mensalidades] = await this.model.db.execute(
-                `SELECT a.CPF, a.nome_completo,
-                        EXISTS(
-                            SELECT 1 FROM assinatura s
-                            WHERE s.CPF = a.CPF AND s.data_vencimento >= CURDATE()
-                        ) AS assinatura_ativa,
-                        m.data_geracao, m.id_plano,
-                        m.valor, m.vencimento, m.data_pagamento,
-                        p.nome AS plano,
-                        CASE
-                            WHEN m.data_pagamento IS NOT NULL THEN 'paga'
-                            WHEN m.vencimento < CURDATE() THEN 'atrasada'
-                            ELSE 'pendente'
-                        END AS status
-                 FROM aluno a
-                 LEFT JOIN mensalidade m ON m.CPF = a.CPF
-                 LEFT JOIN plano p ON p.id_plano = m.id_plano
-                 ORDER BY a.nome_completo, m.vencimento DESC`
-            )
+            const mensalidades = await this.model.listarDosAlunos()
 
             res.json(mensalidades)
         } catch (err) {
@@ -93,14 +61,10 @@ class MensalidadeController extends BaseController {
                 })
             }
 
-            const [resultado] = await this.model.db.execute(
-                `UPDATE mensalidade
-                 SET data_pagamento = CURDATE()
-                 WHERE CPF = ?
-                 AND data_geracao = ?
-                 AND id_plano = ?
-                 AND data_pagamento IS NULL`,
-                [req.user.id, data_geracao, id_plano]
+            const resultado = await this.model.pagar(
+                req.user.id,
+                data_geracao,
+                id_plano
             )
 
             if (resultado.affectedRows === 0) {
