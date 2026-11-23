@@ -55,15 +55,14 @@ class FichaDeTreinoModel extends BaseModel {
                 validade
             })
 
-            const exercicioFichaModel = new ExercicioFichaModel()
-
             for (const exercicio of exercicios) {
                 await exercicioFichaModel.inserir({
                     id_exercicio: exercicio.id_exercicio,
                     id_ficha,
                     carga: exercicio.carga,
                     series: exercicio.series,
-                    repeticoes: exercicio.repeticoes
+                    repeticoes: exercicio.repeticoes,
+                    ordem: exercicio.ordem
                 })
             }
 
@@ -81,6 +80,70 @@ class FichaDeTreinoModel extends BaseModel {
             [CPF]
         )
         return resultado
+    }
+
+    async buscarParaEdicao(CPF) {
+        const fichas = await this.listarPorCampo({ CPF })
+
+        if (fichas.length === 0) {
+            return null
+        }
+
+        const [exercicios] = await this.db.execute(
+            `SELECT ef.id_exercicio,
+                    ef.carga,
+                    ef.series,
+                    ef.repeticoes,
+                    ef.ordem,
+                    e.nome
+             FROM ExercicioFicha ef
+             JOIN exercicio e ON e.id_exercicio = ef.id_exercicio
+             WHERE ef.id_ficha = ?
+             ORDER BY ef.ordem ASC`,
+            [fichas[0].id_ficha]
+        )
+
+        return {
+            ficha: fichas[0],
+            exercicios
+        }
+    }
+
+    async atualizarFichaComExercicios(CPF, dados) {
+        const { foco, tipo, validade, exercicios } = dados
+        const fichas = await this.listarPorCampo({ CPF })
+
+        if (fichas.length === 0) {
+            throw new Error('Ficha de treino não encontrada')
+        }
+
+        try {
+            await this.atualizar(
+                { foco, tipo, validade },
+                { CPF }
+            )
+
+            const exercicioFichaModel = new ExercicioFichaModel()
+
+            await exercicioFichaModel.deletar({
+                id_ficha: fichas[0].id_ficha
+            })
+
+            for (const exercicio of exercicios) {
+                await exercicioFichaModel.inserir({
+                    id_exercicio: exercicio.id_exercicio,
+                    id_ficha: fichas[0].id_ficha,
+                    carga: exercicio.carga,
+                    series: exercicio.series,
+                    repeticoes: exercicio.repeticoes,
+                    ordem: exercicio.ordem
+                })
+            }
+
+            return { id_ficha: fichas[0].id_ficha }
+        } catch (err) {
+            throw err
+        }
     }
 }
 

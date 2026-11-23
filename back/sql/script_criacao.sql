@@ -55,7 +55,9 @@ CREATE TABLE IF NOT EXISTS ExercicioFicha(
     carga INT NOT NULL,
     series INT NOT NULL,
     repeticoes INT NOT NULL,
+    ordem INT NOT NULL,
     PRIMARY KEY(id_exercicio, id_ficha),
+    UNIQUE(id_ficha, ordem),
     FOREIGN KEY (id_exercicio) REFERENCES exercicio(id_exercicio),
     FOREIGN KEY (id_ficha) REFERENCES FichaDeTreino(id_ficha)
 );
@@ -184,10 +186,11 @@ VALUES
 ('2026-11-11', 1, '08:30:00', '01:10:00');
 
 INSERT IGNORE INTO ExercicioFicha
+(id_exercicio, id_ficha, carga, series, repeticoes, ordem)
 VALUES
-(1, 1, 30, 3, 12),
-(3, 1, 15, 3, 10),
-(2, 2, 40, 4, 12);
+(1, 1, 30, 3, 12, 1),
+(3, 1, 15, 3, 10, 2),
+(2, 2, 40, 4, 12, 1);
 
 INSERT IGNORE INTO assinatura
 (id_plano, CPF, data_assinatura, data_vencimento)
