@@ -99,7 +99,7 @@ VALUES
     'Carlos Henrique',
     '82987623212',
     '2026-01-10',
-    '223450',
+    '$2b$10$EigMBj5mdfJZN2J.akIZOudnJuHqZRpyhJhxTXco5hmJkAu1D3PUy',
     'Musculação'
 ),
 (
@@ -108,7 +108,7 @@ VALUES
     'Ana Paula',
     '82987654321',
     '2026-03-15',
-    '654321',
+    '$2b$10$ub04GItfknI/JLJT2QOjpebPJtT5qyz1yslNzPL77rvH88UHHw5y2',
     'Ginastica'
 );
 

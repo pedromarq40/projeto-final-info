@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT
-const COOKIE_NAME = "token"
+const COOKIE_NAME = process.env.COOKIE
 
 function getUserFromCookie(req) {
   const token = req.cookies && req.cookies[COOKIE_NAME]

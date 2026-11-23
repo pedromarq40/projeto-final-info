@@ -68,5 +68,7 @@ const PORT = process.env.PORT
 
 app.listen(PORT, () => {
     console.log('\n', `Servidor rodando em http://localhost:${PORT}`, '\n')
-    console.table(endpoints)
+    // console.table(endpoints) 
+    // print pra ajudar no debug, mostra as rotas
+
 })
