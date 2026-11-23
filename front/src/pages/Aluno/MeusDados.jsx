@@ -59,6 +59,23 @@ export default function MeusDados({ user, setUser }) {
     }
   }
 
+  async function handleExcluirConta() {
+    const confirmar = window.confirm(
+      'Tem certeza que deseja excluir sua conta? Essa ação é permanente e seus dados vinculados serão apagados.'
+    )
+
+    if (!confirmar) return
+
+    try {
+      await api.delete('/alunos')
+      setUser(undefined)
+      window.location.href = '/login'
+    } catch (error) {
+      console.log(error.response?.data)
+      alert(error.response?.data?.error || 'Erro ao excluir a conta.')
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-[#f3f5ef] text-[#111310]">
       <Aside user={user} setUser={setUser} />
@@ -164,6 +181,14 @@ export default function MeusDados({ user, setUser }) {
                 className="w-full rounded-lg bg-[#a6ee1f] py-3 font-bold text-[#111310] hover:bg-[#95d91b]"
               >
                 Salvar alterações
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExcluirConta}
+                className="w-full rounded-lg bg-red-600 py-3 font-bold text-white hover:bg-red-700"
+              >
+                Excluir minha conta
               </button>
             </form>
           )}

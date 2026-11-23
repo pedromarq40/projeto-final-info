@@ -22,7 +22,7 @@ class AlunoController extends BaseController {
 
                 res.status(200).cookie('token', token, {
                     httpOnly: true,
-                    secure: true,
+secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
                     maxAge: 3600000
                 }).json({ mensagem: "Login Efetuado com Sucesso!" })
@@ -131,9 +131,15 @@ class AlunoController extends BaseController {
             })
         }
 
-        res.status(200).json({
-            message: 'Conta excluída com sucesso'
-        })
+        res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict'
+})
+
+res.status(200).json({
+    message: 'Conta excluída com sucesso'
+})
 
     } catch (err) {
         res.status(500).json({
