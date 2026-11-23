@@ -11,5 +11,3 @@ router.delete('/', auth, (req, res) => MensalidadeController.deletar(req, res))
 router.get('/alunos', auth, (req, res) => MensalidadeController.mensalidadesDosAlunos(req, res))
 router.get('/minhas', auth, (req, res) => MensalidadeController.minhasMensalidades(req, res))
 router.put('/pagar', auth, (req, res) => MensalidadeController.pagar(req, res))
-
-export default router
