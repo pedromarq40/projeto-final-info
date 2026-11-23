@@ -6,6 +6,37 @@ class ExercicioController extends BaseController {
         this.definirModel(new ExercicioModel())
     }
 
+    static async listarPaginado(req, res) {
+        let pagina = Number.parseInt(req.query.pagina, 10)
+        if (Number.isNaN(pagina) || pagina < 1) {
+            pagina = 1
+        }
+
+        let limite = Number.parseInt(req.query.limite, 10)
+        if (Number.isNaN(limite) || limite < 1) {
+            limite = 10
+        } else if (limite > 100) {
+            limite = 100
+        }
+
+        let nome = ''
+        if (typeof req.query.nome === 'string') {
+            nome = req.query.nome.trim()
+        }
+
+        try {
+            const resultado = await this.model.listarPaginado(
+                pagina,
+                limite,
+                nome
+            )
+
+            res.json(resultado)
+        } catch (err) {
+            res.status(500).json({ error: err.message })
+        }
+    }
+
     static async criar(req, res) {
         if (req.user.role !== 'professor') {
             return res.status(403).json({

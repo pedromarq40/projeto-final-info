@@ -12,11 +12,23 @@ export default function Exercicios({ user, setUser }) {
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState("")
   const [sucesso, setSucesso] = useState("")
+  const [busca, setBusca] = useState("")
+  const [pagina, setPagina] = useState(1)
+  const [totalPaginas, setTotalPaginas] = useState(1)
+  const limite = 10
 
-  async function carregarExercicios() {
+  async function carregarExercicios(paginaAtual = pagina, buscaAtual = busca) {
     try {
-      const { data } = await api.get("/exercicios")
-      setExercicios(data)
+      const { data } = await api.get("/exercicios", {
+        params: {
+          pagina: paginaAtual,
+          limite,
+          nome: buscaAtual
+        }
+      })
+      setExercicios(data.dados)
+      setPagina(data.pagina)
+      setTotalPaginas(data.totalPaginas)
       setErro("")
     } catch (error) {
       setErro(error.response?.data?.error || "Não foi possível carregar os exercícios.")
@@ -26,8 +38,17 @@ export default function Exercicios({ user, setUser }) {
   }
 
   useEffect(() => {
-    carregarExercicios()
-  }, [])
+    const timeout = setTimeout(() => {
+      carregarExercicios(pagina, busca)
+    }, busca ? 300 : 0)
+
+    return () => clearTimeout(timeout)
+  }, [pagina, busca])
+
+  function atualizarBusca(event) {
+    setBusca(event.target.value)
+    setPagina(1)
+  }
 
   function atualizarCampo(event) {
     const { name, value } = event.target
@@ -169,6 +190,19 @@ export default function Exercicios({ user, setUser }) {
             </p>
           )}
 
+          <div className="mt-8">
+            <label className="text-sm font-semibold">
+              Pesquisar por nome
+              <input
+                type="search"
+                value={busca}
+                onChange={atualizarBusca}
+                placeholder="Digite o nome do exercício"
+                className="mt-2 w-full rounded-xl border border-[#111310]/10 bg-white px-4 py-3 font-normal outline-none focus:border-[#a6ee1f]"
+              />
+            </label>
+          </div>
+
           <div className="mt-8 overflow-x-auto rounded-2xl bg-white shadow-sm">
             <table className="w-full min-w-[600px] text-left text-sm">
               <thead>
@@ -238,6 +272,30 @@ export default function Exercicios({ user, setUser }) {
               </tbody>
             </table>
           </div>
+
+          {!carregando && (
+            <div className="mt-5 flex items-center justify-end gap-3">
+              <span className="text-sm text-[#111310]/60">
+                Página {pagina} de {Math.max(totalPaginas, 1)}
+              </span>
+              <button
+                type="button"
+                disabled={pagina <= 1}
+                onClick={() => setPagina((atual) => atual - 1)}
+                className="rounded-xl border border-[#111310]/10 px-4 py-2 text-sm font-semibold hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                disabled={pagina >= totalPaginas}
+                onClick={() => setPagina((atual) => atual + 1)}
+                className="rounded-xl border border-[#111310]/10 px-4 py-2 text-sm font-semibold hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Próximo
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>
