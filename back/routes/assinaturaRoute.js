@@ -1,16 +1,14 @@
 import express from 'express'
-import { AssinaturaController } from '../controllers/allControllers.js'
-import{ auth, inverseAuth } from '../auth/auth.js'
+import AssinaturaController from '../controllers/assinaturaController.js'
+import { auth } from '../auth/auth.js'
 
 const router = express.Router()
-router.get('/', (req, res) => AssinaturaController.listarTodos(req, res), auth)
-router.get('/campo', (req, res) => AssinaturaController.listarPorCampo(req, res), auth)
-router.post('/', (req, res) => AssinaturaController.inserir(req, res))
-router.put('/', (req, res) => AssinaturaController.atualizar(req, res))
-router.delete('/', (req, res) => AssinaturaController.deletar(req, res))
-router.get('/minha', auth, (req, res) =>
-    AssinaturaController.minhaAssinatura(req, res))
-router.put('/trocar', auth, (req, res) =>
-    AssinaturaController.trocar(req, res))
+router.get('/', auth, (req, res) => AssinaturaController.listarTodos(req, res))
+router.get('/campo', auth, (req, res) => AssinaturaController.listarPorCampo(req, res))
+router.post('/', auth, (req, res) => AssinaturaController.inserir(req, res))
+router.put('/', auth, (req, res) => AssinaturaController.atualizar(req, res))
+router.delete('/', auth, (req, res) => AssinaturaController.deletar(req, res))
+router.get('/minha', auth, (req, res) => AssinaturaController.minhaAssinatura(req, res))
+router.put('/trocar', auth, (req, res) => AssinaturaController.trocar(req, res))
 
 export default router

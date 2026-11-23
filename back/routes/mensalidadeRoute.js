@@ -1,15 +1,15 @@
 import express from 'express'
-import { MensalidadeController } from '../controllers/allControllers.js'
-import{ auth, inverseAuth } from '../auth/auth.js'
+import MensalidadeController from '../controllers/mensalidadeController.js'
+import { auth } from '../auth/auth.js'
 
 const router = express.Router()
-router.get('/', (req, res) => MensalidadeController.listarTodos(req, res), auth)
-router.get('/campo', (req, res) => MensalidadeController.listarPorCampo(req, res), auth)
-router.post('/', (req, res) => MensalidadeController.inserir(req, res), auth)
-router.put('/', (req, res) => MensalidadeController.atualizar(req, res), auth)
-router.delete('/', (req, res) => MensalidadeController.deletar(req, res), auth)
-router.get('/alunos', auth, (req, res) => MensalidadeController.mensalidadesDosAlunos(req, res), auth)
-router.get('/minhas', auth, (req, res) => MensalidadeController.minhasMensalidades(req, res), auth)
-router.put('/pagar', auth, (req, res) => MensalidadeController.pagar(req, res), auth)
+router.get('/', auth, (req, res) => MensalidadeController.listarTodos(req, res))
+router.get('/campo', auth, (req, res) => MensalidadeController.listarPorCampo(req, res))
+router.post('/', auth, (req, res) => MensalidadeController.inserir(req, res))
+router.put('/', auth, (req, res) => MensalidadeController.atualizar(req, res))
+router.delete('/', auth, (req, res) => MensalidadeController.deletar(req, res))
+router.get('/alunos', auth, (req, res) => MensalidadeController.mensalidadesDosAlunos(req, res))
+router.get('/minhas', auth, (req, res) => MensalidadeController.minhasMensalidades(req, res))
+router.put('/pagar', auth, (req, res) => MensalidadeController.pagar(req, res))
 
 export default router

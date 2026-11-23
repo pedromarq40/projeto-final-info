@@ -42,10 +42,9 @@ app.use('/assinaturas', assinaturaRouter)
 app.get('/auth/me', auth, async (req, res) => {
     try {
         const { id, role } = req.user
-        const tabela = role === 'professor' ? 'professor' : 'aluno'
 
         const [rows] = await db.execute(
-            `SELECT CPF, nome_completo, email, telefone FROM ${tabela} WHERE CPF = ?`,
+            `SELECT CPF, nome_completo, email, telefone FROM ${role} WHERE CPF = ?`,
             [id]
         )
 
@@ -68,7 +67,7 @@ const PORT = process.env.PORT
 
 app.listen(PORT, () => {
     console.log('\n', `Servidor rodando em http://localhost:${PORT}`, '\n')
-    // console.table(endpoints) 
+    console.table(endpoints) 
     // print pra ajudar no debug, mostra as rotas
 
 })

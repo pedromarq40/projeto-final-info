@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS aluno(
     CPF VARCHAR(11) PRIMARY KEY,
     altura DECIMAL(5, 2) NOT NULL,
     peso DECIMAL(5, 2) NOT NULL,
-    problemas_saude VARCHAR(50) NOT NULL,
+    problemas_saude VARCHAR(50),
     email VARCHAR(35) NOT NULL UNIQUE,
     nome_completo VARCHAR(40) NOT NULL,
     telefone VARCHAR(11) NOT NULL,
