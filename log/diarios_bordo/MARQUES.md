@@ -14,3 +14,7 @@ instalei bibliotecas necessárias, fiz a conexão do mysql, configurei o .env<br
 **Data:** 16/11/2026 <br>
 **Tarefa:** Termino do Backend e das classes <br>
 **Descrição:** Classes feitas, padrão mvc, criação das rotas no express<br>
+
+**Data:** 23/11/2026 <br>
+**Tarefa:** CRUD de exercícios e de fichas<br>
+**Descrição:** Adicionei paginação, opções de pesquisa e adição de ordem nos exercícios da ficha <br>
