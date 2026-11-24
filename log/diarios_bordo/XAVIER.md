@@ -18,6 +18,10 @@ Descrição: Hoje desenvolvi o script SQL do banco de dados da PulsoFit, contend
 
 Data: 19/11/2026
 Tarefa: Desenvolvimento das funcionalidades de gerenciamento de alunos e conta do aluno.
-Descrição: Implementação do cadastro, login, consulta e edição dos dados dos alunos. Ajustes nas rotas, controllers e models para integração entre frontend e backend. Também foi realizada uma melhoria visual na tela inicial do sistema e implementada a rota de exclusão de alunos.
+Descrição: Implementação do cadastro, login, consulta e edição dos dados dos alunos. Ajustes nas rotas, controllers e models para integração entre frontend e backend. Também foi realizada uma melhoria visual na tela inicial do sistema e implementada a rota de exclusão de alunos. 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Data: 23/11/2026 Tarefa: Finalização e testes das funcionalidades do módulo Aluno Descrição: Realizei ajustes no código do módulo aluno, correção de problemas relacionados à autenticação e ao login, testei as funcionalidades de cadastro, consulta, atualização e exclusão de alunos. 
 
 
