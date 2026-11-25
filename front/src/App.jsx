@@ -14,6 +14,7 @@ import FichaDeTreino from './pages/Aluno/FichaDeTreino.jsx'
 import RegistrosDeTreino from './pages/Aluno/RegistrosDeTreino.jsx'
 import Mensalidade from './pages/Aluno/Mensalidade.jsx'
 import MeuPlano from './pages/Aluno/MeuPlano.jsx'
+import Relatorios from './pages/Admin/Relatorios.jsx'
 
 export default function App() {
     const [user, setUser] = useState(undefined)
@@ -62,7 +63,7 @@ export default function App() {
                     element={
                         <Protected
                             children={<Alunos user={user} setUser={setUser} />}
-                            condition={isAuth && user.role === "professor"}
+                            condition={isAuth && ["professor", "admin"].includes(user.role)}
                         />
                     }
                 />
@@ -72,7 +73,7 @@ export default function App() {
                     element={
                         <Protected
                             children={<Planos user={user} setUser={setUser} />}
-                            condition={isAuth && user.role === "professor"}
+                            condition={isAuth && ["professor", "admin"].includes(user.role)}
                         />
                     }
                 />
@@ -82,7 +83,17 @@ export default function App() {
                     element={
                         <Protected
                             children={<Exercicios user={user} setUser={setUser} />}
-                            condition={isAuth && user.role === "professor"}
+                            condition={isAuth && ["professor", "admin"].includes(user.role)}
+                        />
+                    }
+                />
+
+                <Route
+                    path="/admin/relatorios"
+                    element={
+                        <Protected
+                            children={<Relatorios user={user} setUser={setUser} />}
+                            condition={isAuth && user.role === "admin"}
                         />
                     }
                 />

@@ -25,6 +25,13 @@ CREATE TABLE IF NOT EXISTS aluno(
     senha VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS admin(
+    CPF VARCHAR(11) PRIMARY KEY,
+    nome_completo VARCHAR(40) NOT NULL,
+    email VARCHAR(35) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS exercicio(
     id_exercicio INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(20) NOT NULL,
@@ -93,6 +100,14 @@ CREATE TABLE IF NOT EXISTS assinatura(
 
 /* INSERTS */
 
+INSERT IGNORE INTO admin
+VALUES (
+    '00000000000',
+    'João Fonseca',
+    'admin@gmail.com',
+    '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG' /*Senha original: 123456*/
+);
+
 INSERT IGNORE INTO professor
 VALUES
 (
@@ -101,7 +116,7 @@ VALUES
     'Carlos Henrique',
     '82987623212',
     '2026-01-10',
-    '$2b$10$EigMBj5mdfJZN2J.akIZOudnJuHqZRpyhJhxTXco5hmJkAu1D3PUy',
+    '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG', /*Senha original: 123456*/
     'Musculação'
 ),
 (
@@ -110,7 +125,7 @@ VALUES
     'Ana Paula',
     '82987654321',
     '2026-03-15',
-    '$2b$10$ub04GItfknI/JLJT2QOjpebPJtT5qyz1yslNzPL77rvH88UHHw5y2',
+    '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG', /*Senha original: 123456*/
     'Ginastica'
 );
 
@@ -125,7 +140,7 @@ VALUES
     'Joao Silva',
     '82993213222',
     '2026-02-01',
-    '123456'
+    '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG' /*Senha original: 123456*/
 ),
 (
     '78712366213',
@@ -136,8 +151,22 @@ VALUES
     'Maria Santos',
     '82988812830',
     '2026-02-02',
-    '123456'
+    '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG' /*Senha original: 123456*/
 );
+
+-- Atualiza as senhas dos usuários de demonstração já existentes no banco.
+-- Senha original: 123456
+UPDATE professor
+SET senha = '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG'
+WHERE email IN ('carlosHr@gmail.com', 'anap1@gmail.com');
+
+UPDATE aluno
+SET senha = '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG'
+WHERE email IN ('joao@gmail.com', 'maria@gmail.com');
+
+UPDATE admin
+SET senha = '$2b$10$ZRknfTE0Qahv2kT0YOYaVeR38QqXojx2XulLe3SAIxJYzzaeONABG'
+WHERE email = 'admin@gmail.com';
 
 INSERT IGNORE INTO exercicio
 VALUES
@@ -159,8 +188,8 @@ VALUES
 
 INSERT IGNORE INTO plano
 VALUES
-(1, 89.90, 'Mensal', TRUE),
-(2, 149.90, 'Trimestral', TRUE);
+(1, 89.90, 'Pro', TRUE),
+(2, 149.90, 'Black', TRUE);
 
 INSERT IGNORE INTO FichaDeTreino
 VALUES

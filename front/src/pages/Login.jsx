@@ -13,12 +13,14 @@ export default function Login({ setUser }) {
     e.preventDefault();
 
     try {
-      await api.post(`${role === "aluno" ? "alunos" : "professores"}/login`, { email, senha })
+      const endpoint = role === "aluno" ? "alunos" : role === "professor" ? "professores" : "admins"
+      await api.post(`${endpoint}/login`, { email, senha })
       const { data } = await api.get('/auth/me')
       setUser(data.user)
       alert("Login efetuado com sucesso!")
       navigate('/')
     } catch (error) {
+      console.error(error)
       console.log(error.response?.status)
       console.log(error.response?.data)
       alert("Erro no login!")
@@ -56,10 +58,11 @@ export default function Login({ setUser }) {
           </p>
 
           {/* Perfil */}
-          <div className="mt-8 grid grid-cols-2 gap-1 rounded-xl bg-[#e6eae0] p-1">
+          <div className="mt-8 grid grid-cols-3 gap-1 rounded-xl bg-[#e6eae0] p-1">
             {[
               ["aluno", "Aluno"],
               ["professor", "Professor"],
+              ["admin", "Admin"],
             ].map(([value, label]) => (
               <button
                 key={value}
@@ -103,15 +106,17 @@ export default function Login({ setUser }) {
             Entrar
           </button>
 
-          <p className="mt-6 text-center text-sm text-[#111310]/50">
-            Não tem conta?{" "}
-            <a
-              href="/cadastro"
-              className="font-semibold text-[#5a8a0f] hover:text-[#111310]"
-            >
-              Criar conta
-            </a>
-          </p>
+          {role !== "admin" && (
+            <p className="mt-6 text-center text-sm text-[#111310]/50">
+              Não tem conta?{" "}
+              <a
+                href="/cadastro"
+                className="font-semibold text-[#5a8a0f] hover:text-[#111310]"
+              >
+                Criar conta
+              </a>
+            </p>
+          )}
         </form>
       </main>
     </div>

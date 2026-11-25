@@ -1,6 +1,7 @@
 import expressListEndpoints from 'express-list-endpoints'
 import professorRouter from './professorRoute.js'
 import alunoRouter from './alunoRoute.js'
+import adminRouter from './adminRoute.js'
 import exercicioRouter from './exercicioRoute.js'
 import fichaDeTreinoRouter from './fichaDeTreinoRoute.js'
 import registroDeTreinoRouter from './registroDeTreinoRoute.js'
@@ -12,6 +13,7 @@ import assinaturaRouter from './assinaturaRoute.js'
 const routers = [
         ['/professores', professorRouter],
         ['/alunos', alunoRouter],
+        ['/admins', adminRouter],
         ['/exercicios', exercicioRouter],
         ['/fichas-de-treino', fichaDeTreinoRouter],
         ['/registros-de-treino', registroDeTreinoRouter],

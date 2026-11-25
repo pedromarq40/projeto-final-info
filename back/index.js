@@ -8,6 +8,7 @@ import { auth } from './auth/auth.js'
 import endpoints from './routes/_nomesrotas.js'
 import professorRouter from './routes/professorRoute.js'
 import alunoRouter from './routes/alunoRoute.js'
+import adminRouter from './routes/adminRoute.js'
 import exercicioRouter from './routes/exercicioRoute.js'
 import fichaDeTreinoRouter from './routes/fichaDeTreinoRoute.js'
 import registroDeTreinoRouter from './routes/registroDeTreinoRoute.js'
@@ -15,7 +16,7 @@ import exercicioFichaRouter from './routes/exercicioFichaRoute.js'
 import planoRouter from './routes/planoRoute.js'
 import mensalidadeRouter from './routes/mensalidadeRoute.js'
 import assinaturaRouter from './routes/assinaturaRoute.js'
-import db from './sql/db.js'
+import authRouter from './routes/authRoute.js'
 
 const app = express()
 
@@ -31,6 +32,7 @@ app.use(cors({
 
 app.use('/professores', professorRouter)
 app.use('/alunos', alunoRouter)
+app.use('/admins', adminRouter)
 app.use('/exercicios', exercicioRouter)
 app.use('/fichas-de-treino', fichaDeTreinoRouter)
 app.use('/registros-de-treino', registroDeTreinoRouter)
@@ -38,30 +40,7 @@ app.use('/exercicios-ficha', exercicioFichaRouter)
 app.use('/planos', planoRouter)
 app.use('/mensalidades', mensalidadeRouter)
 app.use('/assinaturas', assinaturaRouter)
-
-app.get('/auth/me', auth, async (req, res) => {
-    try {
-        const { id, role } = req.user
-
-        const [rows] = await db.execute(
-            `SELECT CPF, nome_completo, email, telefone FROM ${role} WHERE CPF = ?`,
-            [id]
-        )
-
-        if (rows.length === 0) {
-            return res.status(401).json({
-                message: 'Usuário não encontrado.'
-            })
-        }
-
-        res.json({ user: { ...rows[0], role } })
-    } catch (err) {
-        console.error(err)
-        res.status(500).json({
-            message: 'Erro ao buscar usuário.'
-        })
-    }
-})
+app.use('/auth', authRouter)
 
 const PORT = process.env.PORT
 

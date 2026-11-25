@@ -38,9 +38,9 @@ class ExercicioController extends BaseController {
     }
 
     static async criar(req, res) {
-        if (req.user.role !== 'professor') {
+        if (!['professor', 'admin'].includes(req.user.role)) {
             return res.status(403).json({
-                error: 'Acesso permitido somente para professores'
+                error: 'Acesso permitido somente para professores e administradores'
             })
         }
 
@@ -88,9 +88,9 @@ class ExercicioController extends BaseController {
     }
 
     static async atualizarExercicio(req, res) {
-        if (req.user.role !== 'professor') {
+        if (!['professor', 'admin'].includes(req.user.role)) {
             return res.status(403).json({
-                error: 'Acesso permitido somente para professores'
+                error: 'Acesso permitido somente para professores e administradores'
             })
         }
 
@@ -138,9 +138,9 @@ class ExercicioController extends BaseController {
     }
 
     static async deletarExercicio(req, res) {
-        if (req.user.role !== 'professor') {
+        if (!['professor', 'admin'].includes(req.user.role)) {
             return res.status(403).json({
-                error: 'Acesso permitido somente para professores'
+                error: 'Acesso permitido somente para professores e administradores'
             })
         }
 

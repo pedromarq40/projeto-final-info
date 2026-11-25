@@ -25,9 +25,9 @@ class MensalidadeController extends BaseController {
 
     static async mensalidadesDosAlunos(req, res) {
         try {
-            if (req.user.role !== 'professor') {
+            if (!['professor', 'admin'].includes(req.user.role)) {
                 return res.status(403).json({
-                    error: 'Acesso permitido somente para professores'
+                    error: 'Acesso permitido somente para professores e administradores'
                 })
             }
 

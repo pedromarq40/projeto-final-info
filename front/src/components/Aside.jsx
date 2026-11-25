@@ -7,7 +7,9 @@ export default function Aside({ user, setUser }) {
 
     const menu = user.role === "aluno" ?
         ["Início", "Meus dados", "Ficha de treino", "Registros de treino", "Mensalidade", "Meu plano"] :
-        ["Início", "Exercícios", "Planos", "Alunos"]
+        user.role === "admin" ?
+            ["Início", "Exercícios", "Planos", "Alunos", "Relatórios"] :
+            ["Início", "Exercícios", "Planos", "Alunos"]
 
     const rotas = {
         "Início": "/",
@@ -18,7 +20,8 @@ export default function Aside({ user, setUser }) {
         "Meu plano": "/aluno/plano",
         "Exercícios": "/professor/exercicios",
         "Planos": "/professor/planos",
-        "Alunos": "/professor/alunos"
+        "Alunos": "/professor/alunos",
+        "Relatórios": "/admin/relatorios"
     }
 
     return (
@@ -49,7 +52,8 @@ export default function Aside({ user, setUser }) {
             <button
                 onClick={async () => {
                     try {
-                        await api.post(`${user.role === "aluno" ? "alunos" : "professores"}/logout`)
+                        const endpoint = user.role === "aluno" ? "alunos" : user.role === "admin" ? "admins" : "professores"
+                        await api.post(`${endpoint}/logout`)
                     } finally {
                         setUser(undefined)
                         window.location.href = "/login"
