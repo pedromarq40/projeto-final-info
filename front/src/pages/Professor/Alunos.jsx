@@ -21,14 +21,28 @@ const vazio = (valor, sufixo = "") =>
 const formatarValor = (valor) =>
   Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
+const CAMPOS_ALUNO = [
+  { chave: "nome", label: "Nome", valor: (aluno) => vazio(aluno.nome_completo) },
+  { chave: "cpf", label: "CPF", valor: (aluno) => formatarCPF(aluno.CPF) },
+  { chave: "email", label: "E-mail", valor: (aluno) => vazio(aluno.email) },
+  { chave: "telefone", label: "Telefone", valor: (aluno) => formatarTelefone(aluno.telefone) },
+  { chave: "altura", label: "Altura", valor: (aluno) => vazio(aluno.altura, " m") },
+  { chave: "peso", label: "Peso", valor: (aluno) => vazio(aluno.peso, " kg") },
+  { chave: "problemas_saude", label: "Problemas de saúde", valor: (aluno) => vazio(aluno.problemas_saude) },
+  { chave: "data_criacao", label: "Cadastro", valor: (aluno) => formatarData(aluno.data_criacao) },
+  { chave: "assinatura", label: "Plano", valor: (aluno) => vazio(aluno.assinatura) }
+]
+
 export default function Alunos({ user, setUser }) {
   const [alunos, setAlunos] = useState([])
   const [mensalidadesPorAluno, setMensalidadesPorAluno] = useState({})
-  const [assinaturasAtivas, setAssinaturasAtivas] = useState({})
+  const [planosAtivosPorAluno, setPlanosAtivosPorAluno] = useState({})
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState("")
   const [busca, setBusca] = useState("")
+  const [colunasVisiveis, setColunasVisiveis] = useState(["nome", "cpf", "email", "telefone"])
   const [alunoSelecionado, setAlunoSelecionado] = useState(null)
+  const [alunoDetalhado, setAlunoDetalhado] = useState(null)
   const [buscaExercicio, setBuscaExercicio] = useState("")
   const [exerciciosEncontrados, setExerciciosEncontrados] = useState([])
   const [dropdownAberto, setDropdownAberto] = useState(false)
@@ -46,23 +60,27 @@ export default function Alunos({ user, setUser }) {
   useEffect(() => {
     async function carregar() {
       try {
-        const [respostaAlunos, respostaMensalidades] = await Promise.all([
+        const [respostaAlunos, respostaMensalidades, respostaAssinaturas] = await Promise.all([
           api.get("/alunos"),
-          api.get("/mensalidades/alunos")
+          api.get("/mensalidades/alunos"),
+          api.get("/assinaturas/ativas")
         ])
         const porAluno = {}
-        const assinaturas = {}
+        const planosAtivos = {}
 
         respostaMensalidades.data.forEach((mensalidade) => {
-          assinaturas[mensalidade.CPF] = Boolean(mensalidade.assinatura_ativa)
           if (!mensalidade.data_geracao) return
           if (!porAluno[mensalidade.CPF]) porAluno[mensalidade.CPF] = []
           porAluno[mensalidade.CPF].push(mensalidade)
         })
 
+        respostaAssinaturas.data.forEach((assinatura) => {
+          planosAtivos[assinatura.CPF] = assinatura.plano
+        })
+
         setAlunos(respostaAlunos.data)
         setMensalidadesPorAluno(porAluno)
-        setAssinaturasAtivas(assinaturas)
+        setPlanosAtivosPorAluno(planosAtivos)
       } catch (error) {
         setErro(error.response?.data?.error || "Não foi possível carregar os alunos e suas mensalidades.")
       } finally {
@@ -323,6 +341,15 @@ export default function Alunos({ user, setUser }) {
     a.nome_completo?.toLowerCase().includes(termo) ||
     a.email?.toLowerCase().includes(termo)
   )
+  const colunasAtivas = CAMPOS_ALUNO.filter((campo) => colunasVisiveis.includes(campo.chave))
+
+  function alternarColuna(chave) {
+    setColunasVisiveis((visiveis) =>
+      visiveis.includes(chave)
+        ? visiveis.filter((coluna) => coluna !== chave)
+        : [...visiveis, chave]
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-[#f3f5ef] text-[#111310]">
@@ -336,13 +363,33 @@ export default function Alunos({ user, setUser }) {
                 {carregando ? "Carregando..." : `${filtrados.length} de ${alunos.length} alunos`}
               </p>
             </div>
-            <input
-              type="search"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar por nome ou e-mail"
-              className="w-full max-w-xs rounded-xl border border-transparent bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-300 placeholder:text-[#111310]/40 focus:border-[#a6ee1f] focus:shadow-[0_0_0_4px_rgba(166,238,31,0.25)]"
-            />
+            <div className="flex w-full flex-wrap items-center justify-end gap-3 md:w-auto">
+              <details className="relative">
+                <summary className="cursor-pointer list-none rounded-xl bg-white px-4 py-3 text-sm font-semibold shadow-sm transition hover:bg-gray-50">
+                  Campos exibidos
+                </summary>
+                <div className="absolute right-0 z-20 mt-2 max-h-80 w-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+                  {CAMPOS_ALUNO.map((campo) => (
+                    <label key={campo.chave} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={colunasVisiveis.includes(campo.chave)}
+                        onChange={() => alternarColuna(campo.chave)}
+                        className="accent-[#a6ee1f]"
+                      />
+                      {campo.label}
+                    </label>
+                  ))}
+                </div>
+              </details>
+              <input
+                type="search"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar por nome ou e-mail"
+                className="w-full max-w-xs rounded-xl border border-transparent bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-300 placeholder:text-[#111310]/40 focus:border-[#a6ee1f] focus:shadow-[0_0_0_4px_rgba(166,238,31,0.25)]"
+              />
+            </div>
           </div>
 
           {erro && <p className="mt-8 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
@@ -355,20 +402,14 @@ export default function Alunos({ user, setUser }) {
 
           {filtrados.length > 0 && (
             <div className="mt-8 overflow-x-auto rounded-2xl bg-white shadow-sm">
-              <table className="w-full min-w-[1050px] text-left text-sm">
+              <table className="w-full min-w-[850px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-[#111310]/10 text-[11px] font-bold uppercase tracking-widest text-[#111310]/50">
-                    <th className="px-5 py-4">Nome</th>
-                    <th className="px-5 py-4">CPF</th>
-                    <th className="px-5 py-4">E-mail</th>
-                    <th className="px-5 py-4">Telefone</th>
-                    <th className="px-5 py-4">Altura</th>
-                    <th className="px-5 py-4">Peso</th>
-                    <th className="px-5 py-4">Problemas de saúde</th>
-                    <th className="px-5 py-4">Cadastro</th>
-                    <th className="px-5 py-4">Assinatura</th>
+                    {colunasAtivas.map((campo) => (
+                      <th key={campo.chave} className="px-5 py-4">{campo.label}</th>
+                    ))}
                     <th className="px-5 py-4">Mensalidades</th>
-                    <th className="px-5 py-4">Ação</th>
+                    <th className="px-5 py-4">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -376,21 +417,19 @@ export default function Alunos({ user, setUser }) {
                     const mensalidades = mensalidadesPorAluno[a.CPF] || []
                     const atrasadas = mensalidades.filter((m) => m.status === "atrasada").length
                     const pagas = mensalidades.filter((m) => m.status === "paga").length
-                    const assinaturaAtiva = assinaturasAtivas[a.CPF]
+                    const planoAtivo = planosAtivosPorAluno[a.CPF]
+                    const valoresAluno = {
+                      ...a,
+                      assinatura: planoAtivo || "Sem plano vigente"
+                    }
 
                     return (
                       <tr key={a.CPF} className="border-b border-[#111310]/5 transition-colors last:border-0 hover:bg-gray-100">
-                        <td className="px-5 py-4 font-semibold">{a.nome_completo}</td>
-                        <td className="px-5 py-4 text-[#111310]/70">{formatarCPF(a.CPF)}</td>
-                        <td className="px-5 py-4 text-[#111310]/70">{a.email}</td>
-                        <td className="px-5 py-4 text-[#111310]/70">{formatarTelefone(a.telefone)}</td>
-                        <td className="px-5 py-4 text-[#111310]/70">{vazio(a.altura, " m")}</td>
-                        <td className="px-5 py-4 text-[#111310]/70">{vazio(a.peso, " kg")}</td>
-                        <td className="px-5 py-4 text-[#111310]/70">{vazio(a.problemas_saude)}</td>
-                        <td className="px-5 py-4 text-[#111310]/70">{formatarData(a.data_criacao)}</td>
-                        <td className={`px-5 py-4 font-medium ${assinaturaAtiva ? "text-green-700" : "text-[#111310]/50"}`}>
-                          {assinaturaAtiva ? "Ativa" : "Sem plano vigente"}
-                        </td>
+                        {colunasAtivas.map((campo) => (
+                          <td key={campo.chave} className={`px-5 py-4 ${campo.chave === "nome" ? "font-semibold" : "text-[#111310]/70"}`}>
+                            {campo.valor(valoresAluno)}
+                          </td>
+                        ))}
                         <td className="px-5 py-4">
                           <span className={atrasadas > 0 ? "font-bold text-red-700" : "font-medium text-green-700"}>
                             {atrasadas} atrasada{atrasadas === 1 ? "" : "s"}
@@ -400,6 +439,12 @@ export default function Alunos({ user, setUser }) {
                         <td className="px-5 py-4">
                           <div className="flex flex-col items-start gap-2">
                             <button
+                              onClick={() => setAlunoDetalhado(a)}
+                              className="whitespace-nowrap rounded-lg border border-[#111310]/15 px-4 py-2 text-xs font-bold transition hover:bg-gray-100"
+                            >
+                              Ver detalhes
+                            </button>
+                            <button
                               onClick={() => setAlunoFinanceiro(a)}
                               className="whitespace-nowrap rounded-lg border border-[#111310]/15 px-4 py-2 text-xs font-bold transition hover:bg-gray-100"
                             >
@@ -407,8 +452,8 @@ export default function Alunos({ user, setUser }) {
                             </button>
                             <button
                               onClick={() => abrirFormulario(a)}
-                              disabled={!assinaturaAtiva}
-                              title={!assinaturaAtiva ? "O aluno precisa de uma assinatura vigente" : undefined}
+                              disabled={!planoAtivo}
+                              title={!planoAtivo ? "O aluno precisa de uma assinatura vigente" : undefined}
                               className="whitespace-nowrap rounded-lg bg-[#a6ee1f] px-4 py-2 text-xs font-bold text-[#111310] transition hover:bg-[#91d719] disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               Criar ficha
@@ -424,6 +469,43 @@ export default function Alunos({ user, setUser }) {
           )}
         </div>
       </main>
+
+      {alunoDetalhado && (() => {
+        const mensalidades = mensalidadesPorAluno[alunoDetalhado.CPF] || []
+        const atrasadas = mensalidades.filter((mensalidade) => mensalidade.status === "atrasada").length
+        const pagas = mensalidades.filter((mensalidade) => mensalidade.status === "paga").length
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+            <div className="my-auto w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold">Dados do aluno</h2>
+                  <p className="mt-1 text-sm text-gray-500">{alunoDetalhado.nome_completo}</p>
+                </div>
+                <button onClick={() => setAlunoDetalhado(null)} className="rounded-lg px-3 py-1 text-xl text-gray-500 hover:bg-gray-100" aria-label="Fechar detalhes">×</button>
+              </div>
+
+              <dl className="grid gap-4 sm:grid-cols-2">
+                {CAMPOS_ALUNO.map((campo) => (
+                  <div key={campo.chave} className="rounded-xl bg-gray-50 p-4">
+                    <dt className="text-xs font-bold uppercase tracking-wide text-gray-500">{campo.label}</dt>
+                    <dd className="mt-1 break-words text-sm font-medium text-[#111310]">
+                      {campo.chave === "assinatura"
+                        ? planosAtivosPorAluno[alunoDetalhado.CPF] || "Sem plano vigente"
+                        : campo.valor(alunoDetalhado)}
+                    </dd>
+                  </div>
+                ))}
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <dt className="text-xs font-bold uppercase tracking-wide text-gray-500">Mensalidades</dt>
+                  <dd className="mt-1 text-sm font-medium text-[#111310]">{pagas} pagas · {atrasadas} atrasadas</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        )
+      })()}
 
       {alunoSelecionado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">

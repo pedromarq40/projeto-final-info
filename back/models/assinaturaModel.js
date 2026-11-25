@@ -7,6 +7,11 @@ const minhaAssinaturaQuery = await readFile(
     'utf-8'
 )
 
+const assinaturasAtivasAlunosQuery = await readFile(
+    new URL('../sql/buscar_assinaturas_ativas_alunos.sql', import.meta.url),
+    'utf-8'
+)
+
 class AssinaturaModel extends BaseModel {
     constructor() {
         super('assinatura', [
@@ -23,6 +28,11 @@ class AssinaturaModel extends BaseModel {
             minhaAssinaturaQuery,
             [CPF]
         )
+        return resultado
+    }
+
+    async listarAtivasDosAlunos() {
+        const [resultado] = await this.db.execute(assinaturasAtivasAlunosQuery)
         return resultado
     }
 

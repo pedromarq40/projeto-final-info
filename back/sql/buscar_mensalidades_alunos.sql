@@ -1,10 +1,5 @@
 SELECT a.CPF,
        a.nome_completo,
-       EXISTS(
-           SELECT 1
-           FROM assinatura s
-           WHERE s.CPF = a.CPF AND s.data_vencimento >= CURDATE()
-       ) AS assinatura_ativa,
        m.data_geracao,
        m.id_plano,
        m.valor,

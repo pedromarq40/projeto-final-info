@@ -23,6 +23,21 @@ class AssinaturaController extends BaseController {
         }
     }
 
+    static async assinaturasAtivasDosAlunos(req, res) {
+        try {
+            if (!['professor', 'admin'].includes(req.user.role)) {
+                return res.status(403).json({
+                    error: 'Acesso permitido somente para professores e administradores'
+                })
+            }
+
+            const assinaturas = await this.model.listarAtivasDosAlunos()
+            return res.json(assinaturas)
+        } catch (err) {
+            return res.status(500).json({ error: err.message })
+        }
+    }
+
     static async trocar(req, res) {
         if (req.user.role !== 'aluno') {
             return res.status(403).json({
