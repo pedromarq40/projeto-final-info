@@ -198,7 +198,7 @@ export default function Planos({ user, setUser }) {
                 <tr className="border-b border-[#111310]/10 text-[11px] font-bold uppercase tracking-widest text-[#111310]/50">
                   <th className="px-5 py-4">ID</th>
                   <th className="px-5 py-4">Nome</th>
-                  <th className="px-5 py-4">Valor mensal</th>
+                  <th className="px-5 py-4">Valor do plano</th>
                   <th className="px-5 py-4">Ativo</th>
                   <th className="px-5 py-4">Ações</th>
                 </tr>

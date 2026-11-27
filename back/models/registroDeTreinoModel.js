@@ -16,17 +16,94 @@ class RegistroDeTreinoModel extends BaseModel {
         return await fichaModel.listarPorCampo({ CPF })
     }
 
-    async buscarPorFicha(id_ficha) {
+   async buscarPorFicha(id_ficha) {
+    const [resultado] = await this.db.execute(
+        `SELECT
+            rt.id_registro,
+            rt.data_registro,
+            rt.hora,
+            rt.duracao,
+            e.nome AS exercicio,
+            er.carga_realizada,
+            er.series_realizadas,
+            er.repeticoes_realizadas,
+            er.concluido
+         FROM RegistroDeTreino rt
+         LEFT JOIN ExercicioRealizado er
+            ON rt.id_registro = er.id_registro
+         LEFT JOIN exercicio e
+            ON er.id_exercicio = e.id_exercicio
+         WHERE rt.id_ficha = ?
+         ORDER BY rt.data_registro DESC, rt.hora DESC`,
+        [id_ficha]
+    )
+
+    return resultado
+}
+    async inserirComExercicios(dados, exercicios) {
+        const conexao = await this.db.getConnection()
+
+        try {
+            await conexao.beginTransaction()
+
+            const [resultado] = await conexao.execute(
+                `INSERT INTO RegistroDeTreino
+             (data_registro, id_ficha, hora, duracao)
+             VALUES (?, ?, ?, ?)`,
+                [
+                    dados.data_registro,
+                    dados.id_ficha,
+                    dados.hora,
+                    dados.duracao
+                ]
+            )
+
+            const id_registro = resultado.insertId
+
+            for (const exercicio of exercicios) {
+                await conexao.execute(
+                    `INSERT INTO ExercicioRealizado
+                 (id_registro, id_exercicio, carga_realizada,
+                  series_realizadas, repeticoes_realizadas, concluido)
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                    [
+                        id_registro,
+                        exercicio.id_exercicio,
+                        exercicio.carga_realizada,
+                        exercicio.series_realizadas,
+                        exercicio.repeticoes_realizadas,
+                        exercicio.concluido
+                    ]
+                )
+            }
+
+            await conexao.commit()
+
+            return id_registro
+
+        } catch (err) {
+            await conexao.rollback()
+            throw err
+        } finally {
+            conexao.release()
+        }
+    }
+    async verificarExerciciosDaFicha(id_ficha, exercicios) {
         const [resultado] = await this.db.execute(
-            `SELECT data_registro, hora, duracao
-             FROM RegistroDeTreino
-             WHERE id_ficha = ?
-             ORDER BY data_registro DESC`,
+            `SELECT id_exercicio
+         FROM ExercicioFicha
+         WHERE id_ficha = ?`,
             [id_ficha]
         )
-        return resultado
-    }
 
+        const idsDaFicha = resultado.map(exercicio =>
+            Number(exercicio.id_exercicio)
+        )
+
+        return exercicios.every(exercicio =>
+            idsDaFicha.includes(Number(exercicio.id_exercicio))
+        )
+    }
 }
 
 export default RegistroDeTreinoModel

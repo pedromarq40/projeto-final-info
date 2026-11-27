@@ -16,4 +16,4 @@ LEFT JOIN ExercicioFicha ef
 LEFT JOIN exercicio e
     ON ef.id_exercicio = e.id_exercicio
 WHERE f.CPF = ?
-ORDER BY ef.ordem ASC
+ORDER BY f.id_ficha ASC, ef.ordem ASC;

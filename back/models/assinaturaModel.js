@@ -1,3 +1,4 @@
+
 import BaseModel from './baseModel.js'
 import PlanoModel from './planoModel.js'
 import { readFile } from 'node:fs/promises'
@@ -53,6 +54,14 @@ class AssinaturaModel extends BaseModel {
                 return { status: 404 }
             }
 
+            const nomePlano = planos[0].nome.trim().toLowerCase()
+            const intervalo = nomePlano.includes('trimestral') ? 3 : 1
+
+            if (duracao_meses % intervalo !== 0) {
+                await conexao.rollback()
+                return { status: 400 }
+            }
+
             const [atuais] = await conexao.execute(
                 `SELECT id_assinatura, data_vencimento >= CURDATE() AS ativa
                  FROM assinatura
@@ -84,27 +93,41 @@ class AssinaturaModel extends BaseModel {
                 )
             }
 
-            for (let parcela = 1; parcela <= duracao_meses; parcela += 1) {
+            for (
+                let parcela = 0;
+                parcela <= duracao_meses - 1;
+                parcela += intervalo
+            ) {
                 await conexao.execute(
                     `INSERT INTO mensalidade
-                     (data_geracao, CPF, id_plano, valor, vencimento, data_pagamento)
+                     (
+                         data_geracao,
+                         CPF,
+                         id_plano,
+                         valor,
+                         vencimento,
+                         data_pagamento,
+                         status
+                     )
                      VALUES (
                          DATE_ADD(CURDATE(), INTERVAL ? MONTH),
                          ?, ?, ?,
                          DATE_ADD(CURDATE(), INTERVAL ? MONTH),
-                         NULL
+                         NULL,
+                         'pendente'
                      )`,
                     [
-                        parcela - 1,
+                        parcela,
                         CPF,
                         id_plano,
                         planos[0].valor_mensal,
-                        parcela
+                        parcela + intervalo
                     ]
                 )
             }
 
             await conexao.commit()
+
             return { status: 201, duracao_meses }
         } catch (err) {
             await conexao.rollback()
@@ -113,7 +136,6 @@ class AssinaturaModel extends BaseModel {
             conexao.release()
         }
     }
-
 }
 
 export default AssinaturaModel

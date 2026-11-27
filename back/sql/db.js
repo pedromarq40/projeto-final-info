@@ -15,7 +15,7 @@ const db = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    multipleStatements: true // pra aceitar varios comandos do sql de uma vez so
+    multipleStatements: true 
 })
 
 const query = await readFile('sql/script_criacao.sql', 'utf-8')

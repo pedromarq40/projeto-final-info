@@ -33,14 +33,9 @@ class FichaDeTreinoModel extends BaseModel {
 
     async criarFichaComExercicios(dados) {
         const { CPF, foco, tipo, validade, exercicios } = dados
-
+        const exercicioFichaModel = new ExercicioFichaModel()
         try {
-            const fichasExistentes = await this.listarPorCampo({ CPF })
-
-            if (fichasExistentes.length > 0) {
-                throw new Error('Esse aluno já possui uma ficha de treino')
-            }
-
+          
             const [resultadoId] = await this.db.execute(
                 'SELECT COALESCE(MAX(id_ficha), 0) + 1 AS novoId FROM FichaDeTreino'
             )
