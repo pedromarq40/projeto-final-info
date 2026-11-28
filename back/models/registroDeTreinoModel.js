@@ -1,5 +1,6 @@
 import BaseModel from './baseModel.js'
 import FichaDeTreinoModel from './fichaDeTreinoModel.js'
+import ExercicioFichaModel from './exercicioFichaModel.js'
 
 class RegistroDeTreinoModel extends BaseModel {
     constructor() {
@@ -89,19 +90,18 @@ class RegistroDeTreinoModel extends BaseModel {
         }
     }
     async verificarExerciciosDaFicha(id_ficha, exercicios) {
-        const [resultado] = await this.db.execute(
-            `SELECT id_exercicio
-         FROM ExercicioFicha
-         WHERE id_ficha = ?`,
-            [id_ficha]
-        )
-
-        const idsDaFicha = resultado.map(exercicio =>
-            Number(exercicio.id_exercicio)
+        const exercicioFichaModel = new ExercicioFichaModel()
+        const exerciciosDaFicha = await exercicioFichaModel.listarPorCampo({
+            id_ficha
+        })
+        const idsDaFicha = new Set(
+            exerciciosDaFicha.map(exercicio =>
+                Number(exercicio.id_exercicio)
+            )
         )
 
         return exercicios.every(exercicio =>
-            idsDaFicha.includes(Number(exercicio.id_exercicio))
+            idsDaFicha.has(Number(exercicio.id_exercicio))
         )
     }
 }

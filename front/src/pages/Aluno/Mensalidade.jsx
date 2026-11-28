@@ -1,57 +1,57 @@
-import { useEffect, useState } from "react";
-import api from "../../api/api.js";
-import Aside from "../../components/Aside.jsx";
+import { useEffect, useState } from "react"
+import api from "../../api/api.js"
+import Aside from "../../components/Aside.jsx"
 
 export default function Mensalidade({ user, setUser }) {
-  const [mensalidades, setMensalidades] = useState([]);
-  const [mensagem, setMensagem] = useState("");
-  const [carregando, setCarregando] = useState(true);
+  const [mensalidades, setMensalidades] = useState([])
+  const [mensagem, setMensagem] = useState("")
+  const [carregando, setCarregando] = useState(true)
 
   async function carregarMensalidades() {
     try {
-      const resposta = await api.get("/mensalidades/minhas");
-      setMensalidades(resposta.data);
+      const resposta = await api.get("/mensalidades/minhas")
+      setMensalidades(resposta.data)
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao carregar mensalidades");
+      setMensagem(err.response?.data?.error || "Erro ao carregar mensalidades")
     } finally {
-      setCarregando(false);
+      setCarregando(false)
     }
   }
 
   useEffect(() => {
-    carregarMensalidades();
-  }, []);
+    carregarMensalidades()
+  }, [])
 
   async function pagarMensalidade(mensalidade) {
-    setMensagem("");
+    setMensagem("")
 
     try {
       await api.put("/mensalidades/pagar", {
         data_geracao: mensalidade.data_geracao,
         id_plano: mensalidade.id_plano,
-      });
+      })
 
-      setMensagem("Pagamento registrado com sucesso!");
-      carregarMensalidades();
+      setMensagem("Pagamento registrado com sucesso!")
+      carregarMensalidades()
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao registrar pagamento");
+      setMensagem(err.response?.data?.error || "Erro ao registrar pagamento")
     }
   }
 
   function formatarData(data) {
-    if (!data) return "-";
+    if (!data) return "-"
 
-    const dataFormatada = new Date(data);
+    const dataFormatada = new Date(data)
     return dataFormatada.toLocaleDateString("pt-BR", {
       timeZone: "UTC",
-    });
+    })
   }
 
   function formatarValor(valor) {
     return Number(valor).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
-    });
+    })
   }
 
   return (
@@ -160,5 +160,5 @@ export default function Mensalidade({ user, setUser }) {
         </div>
       </main>
     </div>
-  );
+  )
 }

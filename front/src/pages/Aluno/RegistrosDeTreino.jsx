@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react";
-import api from "../../api/api.js";
-import Aside from "../../components/Aside.jsx";
+import { useEffect, useState } from "react"
+import api from "../../api/api.js"
+import Aside from "../../components/Aside.jsx"
 
 export default function RegistrosDeTreino({ user, setUser }) {
-  const [registros, setRegistros] = useState([]);
-  const [exerciciosFicha, setExerciciosFicha] = useState([]);
-  const [exerciciosRealizados, setExerciciosRealizados] = useState([]);
-  const [inicioTreino, setInicioTreino] = useState(null);
-  const [dataInicio, setDataInicio] = useState("");
-  const [horaInicio, setHoraInicio] = useState("");
-  const [tempoDecorrido, setTempoDecorrido] = useState(0);
-  const [salvando, setSalvando] = useState(false);
-  const [mensagem, setMensagem] = useState("");
+  const [registros, setRegistros] = useState([])
+  const [exerciciosFicha, setExerciciosFicha] = useState([])
+  const [exerciciosRealizados, setExerciciosRealizados] = useState([])
+  const [inicioTreino, setInicioTreino] = useState(null)
+  const [dataInicio, setDataInicio] = useState("")
+  const [horaInicio, setHoraInicio] = useState("")
+  const [tempoDecorrido, setTempoDecorrido] = useState(0)
+  const [salvando, setSalvando] = useState(false)
+  const [mensagem, setMensagem] = useState("")
 
   async function carregarRegistros() {
     try {
-      const resposta = await api.get("/registros-de-treino/meus-registros");
+      const resposta = await api.get("/registros-de-treino/meus-registros")
 
       const registrosAgrupados = resposta.data.reduce((acumulado, item) => {
         let registro = acumulado.find(
           (r) => r.id_registro === item.id_registro,
-        );
+        )
 
         if (!registro) {
           registro = {
@@ -29,9 +29,9 @@ export default function RegistrosDeTreino({ user, setUser }) {
             hora: item.hora,
             duracao: item.duracao,
             exercicios: [],
-          };
+          }
 
-          acumulado.push(registro);
+          acumulado.push(registro)
         }
 
         if (item.exercicio) {
@@ -41,29 +41,29 @@ export default function RegistrosDeTreino({ user, setUser }) {
             series: item.series_realizadas,
             repeticoes: item.repeticoes_realizadas,
             concluido: item.concluido,
-          });
+          })
         }
 
-        return acumulado;
-      }, []);
+        return acumulado
+      }, [])
 
       setRegistros(
         registrosAgrupados.filter((registro) => registro.exercicios.length > 0),
-      );
+      )
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao carregar registros");
+      setMensagem(err.response?.data?.error || "Erro ao carregar registros")
     }
   }
 
   async function carregarExercicios() {
     try {
-      const resposta = await api.get("/fichas-de-treino/minha-ficha");
+      const resposta = await api.get("/fichas-de-treino/minha-ficha")
 
       const exercicios = resposta.data.filter(
         (exercicio) => exercicio.id_exercicio,
-      );
+      )
 
-      setExerciciosFicha(exercicios);
+      setExerciciosFicha(exercicios)
 
       setExerciciosRealizados(
         exercicios.map((exercicio) => ({
@@ -73,68 +73,68 @@ export default function RegistrosDeTreino({ user, setUser }) {
           repeticoes_realizadas: exercicio.repeticoes,
           concluido: false,
         })),
-      );
+      )
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao carregar exercícios");
+      setMensagem(err.response?.data?.error || "Erro ao carregar exercícios")
     }
   }
   function atualizarExercicio(index, campo, valor) {
-    const novosExercicios = [...exerciciosRealizados];
+    const novosExercicios = [...exerciciosRealizados]
 
-    novosExercicios[index][campo] = valor;
+    novosExercicios[index][campo] = valor
 
-    setExerciciosRealizados(novosExercicios);
+    setExerciciosRealizados(novosExercicios)
   }
   useEffect(() => {
-    carregarRegistros();
-    carregarExercicios();
-  }, []);
+    carregarRegistros()
+    carregarExercicios()
+  }, [])
   useEffect(() => {
-    if (inicioTreino === null) return;
+    if (inicioTreino === null) return
 
     const intervalo = setInterval(() => {
-      setTempoDecorrido(Date.now() - inicioTreino);
-    }, 1000);
+      setTempoDecorrido(Date.now() - inicioTreino)
+    }, 1000)
 
-    return () => clearInterval(intervalo);
-  }, [inicioTreino]);
+    return () => clearInterval(intervalo)
+  }, [inicioTreino])
 
   function iniciarTreino() {
-    const agora = new Date();
+    const agora = new Date()
 
     const data = [
       agora.getFullYear(),
       String(agora.getMonth() + 1).padStart(2, "0"),
       String(agora.getDate()).padStart(2, "0"),
-    ].join("-");
+    ].join("-")
 
     const hora = [
       String(agora.getHours()).padStart(2, "0"),
       String(agora.getMinutes()).padStart(2, "0"),
       String(agora.getSeconds()).padStart(2, "0"),
-    ].join(":");
+    ].join(":")
 
-    setDataInicio(data);
-    setHoraInicio(hora);
-    setTempoDecorrido(0);
-    setInicioTreino(Date.now());
-    setMensagem("");
+    setDataInicio(data)
+    setHoraInicio(hora)
+    setTempoDecorrido(0)
+    setInicioTreino(Date.now())
+    setMensagem("")
   }
 
   function formatarTempo(tempo) {
-    const segundosTotais = Math.floor(tempo / 1000);
+    const segundosTotais = Math.floor(tempo / 1000)
 
-    const horas = Math.floor(segundosTotais / 3600);
-    const minutos = Math.floor((segundosTotais % 3600) / 60);
-    const segundos = segundosTotais % 60;
+    const horas = Math.floor(segundosTotais / 3600)
+    const minutos = Math.floor((segundosTotais % 3600) / 60)
+    const segundos = segundosTotais % 60
 
     return [horas, minutos, segundos]
       .map((valor) => String(valor).padStart(2, "0"))
-      .join(":");
+      .join(":")
   }
 
   async function finalizarTreino() {
-    if (inicioTreino === null || salvando) return;
+    if (inicioTreino === null || salvando) return
     const exerciciosInvalidos = exerciciosRealizados.some(
       (exercicio) =>
         exercicio.carga_realizada === "" ||
@@ -143,18 +143,18 @@ export default function RegistrosDeTreino({ user, setUser }) {
         Number(exercicio.carga_realizada) < 0 ||
         Number(exercicio.series_realizadas) <= 0 ||
         Number(exercicio.repeticoes_realizadas) <= 0,
-    );
+    )
 
     if (exerciciosInvalidos) {
-      setMensagem("Preencha corretamente os dados de todos os exercícios.");
-      return;
+      setMensagem("Preencha corretamente os dados de todos os exercícios.")
+      return
     }
-    const duracao = formatarTempo(Date.now() - inicioTreino);
+    const duracao = formatarTempo(Date.now() - inicioTreino)
 
-    setTempoDecorrido(Date.now() - inicioTreino);
-    setInicioTreino(null);
-    setSalvando(true);
-    setMensagem("");
+    setTempoDecorrido(Date.now() - inicioTreino)
+    setInicioTreino(null)
+    setSalvando(true)
+    setMensagem("")
 
     try {
       await api.post("/registros-de-treino/registrar", {
@@ -168,14 +168,14 @@ export default function RegistrosDeTreino({ user, setUser }) {
           repeticoes_realizadas: Number(exercicio.repeticoes_realizadas),
           concluido: exercicio.concluido,
         })),
-      });
+      })
 
-      setMensagem("Treino registrado com sucesso!");
-      await carregarRegistros();
+      setMensagem("Treino registrado com sucesso!")
+      await carregarRegistros()
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao registrar treino");
+      setMensagem(err.response?.data?.error || "Erro ao registrar treino")
     } finally {
-      setSalvando(false);
+      setSalvando(false)
     }
   }
 
@@ -370,5 +370,5 @@ export default function RegistrosDeTreino({ user, setUser }) {
         </div>
       </main>
     </div>
-  );
+  )
 }

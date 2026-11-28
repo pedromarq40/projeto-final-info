@@ -1,76 +1,76 @@
-import { useEffect, useState } from "react";
-import api from "../../api/api.js";
-import Aside from "../../components/Aside.jsx";
+import { useEffect, useState } from "react"
+import api from "../../api/api.js"
+import Aside from "../../components/Aside.jsx"
 
 export default function MeuPlano({ user, setUser }) {
-  const [assinatura, setAssinatura] = useState(null);
-  const [planos, setPlanos] = useState([]);
-  const [planoSelecionado, setPlanoSelecionado] = useState("");
-  const [duracaoMeses, setDuracaoMeses] = useState("1");
-  const [mensagem, setMensagem] = useState("");
-  const [carregando, setCarregando] = useState(true);
-  const [salvando, setSalvando] = useState(false);
+  const [assinatura, setAssinatura] = useState(null)
+  const [planos, setPlanos] = useState([])
+  const [planoSelecionado, setPlanoSelecionado] = useState("")
+  const [duracaoMeses, setDuracaoMeses] = useState("1")
+  const [mensagem, setMensagem] = useState("")
+  const [carregando, setCarregando] = useState(true)
+  const [salvando, setSalvando] = useState(false)
 
   async function carregarDados() {
     try {
-      const respostaPlanos = await api.get("/planos");
-      const respostaAssinatura = await api.get("/assinaturas/minha");
+      const respostaPlanos = await api.get("/planos")
+      const respostaAssinatura = await api.get("/assinaturas/minha")
 
-      setPlanos(respostaPlanos.data.filter((plano) => plano.efetivo));
-      setAssinatura(respostaAssinatura.data[0] || null);
+      setPlanos(respostaPlanos.data.filter((plano) => plano.efetivo))
+      setAssinatura(respostaAssinatura.data[0] || null)
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao carregar planos");
+      setMensagem(err.response?.data?.error || "Erro ao carregar planos")
     } finally {
-      setCarregando(false);
+      setCarregando(false)
     }
   }
 
   useEffect(() => {
-    carregarDados();
-  }, []);
+    carregarDados()
+  }, [])
 
   async function trocarPlano(e) {
-    e.preventDefault();
-    setMensagem("");
+    e.preventDefault()
+    setMensagem("")
 
     if (!planoSelecionado) {
-      setMensagem("Selecione um plano.");
-      return;
+      setMensagem("Selecione um plano.")
+      return
     }
 
-    setSalvando(true);
+    setSalvando(true)
     try {
       await api.put("/assinaturas/trocar", {
         id_plano: Number(planoSelecionado),
         duracao_meses: Number(duracaoMeses),
-      });
+      })
 
-      setMensagem("Assinatura realizada com sucesso!");
-      setPlanoSelecionado("");
-      await carregarDados();
+      setMensagem("Assinatura realizada com sucesso!")
+      setPlanoSelecionado("")
+      await carregarDados()
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao realizar assinatura");
+      setMensagem(err.response?.data?.error || "Erro ao realizar assinatura")
     } finally {
-      setSalvando(false);
+      setSalvando(false)
     }
   }
 
   async function cancelarAssinatura() {
     if (!window.confirm("Tem certeza que deseja cancelar sua assinatura?")) {
-      return;
+      return
     }
 
-    setSalvando(true);
-    setMensagem("");
+    setSalvando(true)
+    setMensagem("")
 
     try {
-      await api.put("/assinaturas/cancelar");
-      setMensagem("Assinatura cancelada com sucesso!");
-      await carregarDados();
+      await api.put("/assinaturas/cancelar")
+      setMensagem("Assinatura cancelada com sucesso!")
+      await carregarDados()
     } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao cancelar assinatura");
+      setMensagem(err.response?.data?.error || "Erro ao cancelar assinatura")
     } finally {
-      setSalvando(false);
+      setSalvando(false)
     }
   }
 
@@ -78,22 +78,22 @@ export default function MeuPlano({ user, setUser }) {
     return Number(valor).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
-    });
+    })
   }
 
   function formatarData(data) {
-    if (!data) return "-";
+    if (!data) return "-"
 
     return new Date(data).toLocaleDateString("pt-BR", {
       timeZone: "UTC",
-    });
+    })
   }
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = new Date().toISOString().slice(0, 10)
   const assinaturaAtiva =
     assinatura &&
     assinatura.status === "ativa" &&
-    new Date(assinatura.data_vencimento).toISOString().slice(0, 10) >= hoje;
+    new Date(assinatura.data_vencimento).toISOString().slice(0, 10) >= hoje
 
   return (
     <div className="flex min-h-screen bg-[#f3f5ef] text-[#111310]">
@@ -255,5 +255,5 @@ export default function MeuPlano({ user, setUser }) {
         </div>
       </main>
     </div>
-  );
+  )
 }
