@@ -21,21 +21,27 @@ class RegistroDeTreinoModel extends BaseModel {
     const [resultado] = await this.db.execute(
         `SELECT
             rt.id_registro,
+            rt.id_ficha,
             rt.data_registro,
             rt.hora,
             rt.duracao,
+            er.id_exercicio,
             e.nome AS exercicio,
             er.carga_realizada,
             er.series_realizadas,
             er.repeticoes_realizadas,
-            er.concluido
+            er.concluido,
+            ef.ordem
          FROM RegistroDeTreino rt
          LEFT JOIN ExercicioRealizado er
             ON rt.id_registro = er.id_registro
          LEFT JOIN exercicio e
             ON er.id_exercicio = e.id_exercicio
+         LEFT JOIN ExercicioFicha ef
+            ON ef.id_ficha = rt.id_ficha
+            AND ef.id_exercicio = er.id_exercicio
          WHERE rt.id_ficha = ?
-         ORDER BY rt.data_registro DESC, rt.hora DESC`,
+         ORDER BY rt.data_registro DESC, rt.hora DESC, ef.ordem ASC`,
         [id_ficha]
     )
 

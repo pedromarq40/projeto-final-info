@@ -33,7 +33,7 @@ export default function Relatorios({ user, setUser }) {
   )
 
   return (
-    <div className="flex min-h-screen bg-[#f3f5ef] text-[#172016]">
+    <div className="flex min-h-screen bg-[#f3f5ef] pb-20 text-[#172016] md:pb-0">
       <Aside user={user} setUser={setUser} />
       <div className="min-w-0 flex-1">
         <header className="border-b border-[#172016]/10 bg-white px-5 py-5 sm:px-8">

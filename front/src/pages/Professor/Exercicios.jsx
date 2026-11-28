@@ -118,7 +118,7 @@ export default function Exercicios({ user, setUser }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f3f5ef] text-[#111310]">
+    <div className="flex min-h-screen bg-[#f3f5ef] pb-20 text-[#111310] md:pb-0">
       <Aside user={user} setUser={setUser} />
 
       <main className="min-w-0 flex-1 px-6 py-10 md:px-8">

@@ -6,7 +6,7 @@ export default function Aside({ user, setUser }) {
     const navigate = useNavigate()
 
     const menu = user.role === "aluno" ?
-        ["Início", "Meus dados", "Ficha de treino", "Registros de treino", "Mensalidade", "Meu plano"] :
+        ["Início", "Meus dados", "Ficha de treino", "Registros de treino", "Histórico de treino", "Progresso", "Mensalidade", "Meu plano"] :
         user.role === "admin" ?
             ["Início", "Exercícios", "Planos", "Alunos", "Relatórios"] :
             ["Início", "Exercícios", "Planos", "Alunos"]
@@ -16,6 +16,8 @@ export default function Aside({ user, setUser }) {
         "Meus dados": "/aluno/meus-dados",
         "Ficha de treino": "/aluno/ficha-de-treino",
         "Registros de treino": "/aluno/registros-de-treino",
+        "Histórico de treino": "/aluno/historico-de-treino",
+        "Progresso": "/aluno/progresso",
         "Mensalidade": "/aluno/mensalidade",
         "Meu plano": "/aluno/plano",
         "Exercícios": "/professor/exercicios",
@@ -25,8 +27,8 @@ export default function Aside({ user, setUser }) {
     }
 
     return (
-        <aside className="hidden w-60 flex-col justify-between bg-[#111310] p-5 md:flex">
-            <div>
+        <aside className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-center justify-start bg-[#111310] px-5 md:sticky md:inset-x-auto md:top-0 md:bottom-auto md:h-screen md:w-60 md:shrink-0 md:flex-col md:justify-between md:p-5">
+            <div className="hidden md:block">
                 <div className="mb-10 text-lg font-extrabold tracking-tight">
                     <span className="text-[#a6ee1f]">PULSO</span>
                     <span className="text-white">FIT</span>
@@ -59,7 +61,7 @@ export default function Aside({ user, setUser }) {
                         window.location.href = "/login"
                     }
                 }}
-                className="px-3 py-3 text-left text-sm text-white/50 hover:text-white"
+                className="rounded-lg px-3 py-3 text-left text-sm text-white/70 hover:bg-white/5 hover:text-white"
             >
                 Sair
             </button>

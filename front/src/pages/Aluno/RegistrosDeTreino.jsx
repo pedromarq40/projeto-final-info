@@ -3,7 +3,6 @@ import api from "../../api/api.js"
 import Aside from "../../components/Aside.jsx"
 
 export default function RegistrosDeTreino({ user, setUser }) {
-  const [registros, setRegistros] = useState([])
   const [exerciciosFicha, setExerciciosFicha] = useState([])
   const [exerciciosRealizados, setExerciciosRealizados] = useState([])
   const [inicioTreino, setInicioTreino] = useState(null)
@@ -13,71 +12,6 @@ export default function RegistrosDeTreino({ user, setUser }) {
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState("")
 
-  async function carregarRegistros() {
-    try {
-      const resposta = await api.get("/registros-de-treino/meus-registros")
-
-      const registrosAgrupados = resposta.data.reduce((acumulado, item) => {
-        let registro = acumulado.find(
-          (r) => r.id_registro === item.id_registro,
-        )
-
-        if (!registro) {
-          registro = {
-            id_registro: item.id_registro,
-            data_registro: item.data_registro,
-            hora: item.hora,
-            duracao: item.duracao,
-            exercicios: [],
-          }
-
-          acumulado.push(registro)
-        }
-
-        if (item.exercicio) {
-          registro.exercicios.push({
-            exercicio: item.exercicio,
-            carga: item.carga_realizada,
-            series: item.series_realizadas,
-            repeticoes: item.repeticoes_realizadas,
-            concluido: item.concluido,
-          })
-        }
-
-        return acumulado
-      }, [])
-
-      setRegistros(
-        registrosAgrupados.filter((registro) => registro.exercicios.length > 0),
-      )
-    } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao carregar registros")
-    }
-  }
-
-  async function carregarExercicios() {
-    try {
-      const resposta = await api.get("/fichas-de-treino/minha-ficha")
-
-      const exercicios = resposta.data.filter(
-        (exercicio) => exercicio.id_exercicio,
-      )
-
-      setExerciciosFicha(exercicios)
-
-      setExerciciosRealizados(
-        exercicios.map((exercicio) => ({
-          id_exercicio: exercicio.id_exercicio,
-          carga_realizada: exercicio.carga,
-          series_realizadas: exercicio.series,
-          repeticoes_realizadas: exercicio.repeticoes,
-          concluido: false,
-        })),
-      )
-    } catch (err) {
-      setMensagem(err.response?.data?.error || "Erro ao carregar exercícios")
-    }
-  }
   function atualizarExercicio(index, campo, valor) {
     const novosExercicios = [...exerciciosRealizados]
 
@@ -86,8 +20,42 @@ export default function RegistrosDeTreino({ user, setUser }) {
     setExerciciosRealizados(novosExercicios)
   }
   useEffect(() => {
-    carregarRegistros()
-    carregarExercicios()
+    let ativo = true
+
+    api
+      .get("/fichas-de-treino/minha-ficha")
+      .then(({ data }) => {
+        if (!ativo) return
+
+        const exercicios = data
+          .filter((exercicio) => exercicio.id_exercicio)
+          .sort(
+            (primeiro, segundo) =>
+              Number(primeiro.ordem) - Number(segundo.ordem),
+          )
+
+        setExerciciosFicha(exercicios)
+        setExerciciosRealizados(
+          exercicios.map((exercicio) => ({
+            id_exercicio: exercicio.id_exercicio,
+            carga_realizada: exercicio.carga,
+            series_realizadas: exercicio.series,
+            repeticoes_realizadas: exercicio.repeticoes,
+            concluido: false,
+          })),
+        )
+      })
+      .catch((error) => {
+        if (ativo) {
+          setMensagem(
+            error.response?.data?.error || "Erro ao carregar exercícios",
+          )
+        }
+      })
+
+    return () => {
+      ativo = false
+    }
   }, [])
   useEffect(() => {
     if (inicioTreino === null) return
@@ -171,7 +139,6 @@ export default function RegistrosDeTreino({ user, setUser }) {
       })
 
       setMensagem("Treino registrado com sucesso!")
-      await carregarRegistros()
     } catch (err) {
       setMensagem(err.response?.data?.error || "Erro ao registrar treino")
     } finally {
@@ -180,7 +147,7 @@ export default function RegistrosDeTreino({ user, setUser }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f3f5ef] text-[#111310]">
+    <div className="flex min-h-screen bg-[#f3f5ef] pb-20 text-[#111310] md:pb-0">
       <Aside user={user} setUser={setUser} />
 
       <main className="flex-1 px-6 py-10">
@@ -188,7 +155,7 @@ export default function RegistrosDeTreino({ user, setUser }) {
           <h1 className="text-3xl font-bold">Meus registros de treino</h1>
 
           <p className="mt-2 text-sm text-[#111310]/60">
-            Registre suas atividades e acompanhe seu histórico.
+            Cronometre e registre os exercícios de cada sessão.
           </p>
 
           <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm text-center">
@@ -307,65 +274,6 @@ export default function RegistrosDeTreino({ user, setUser }) {
                 </label>
               </div>
             ))}
-          </div>
-          <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Histórico</h2>
-
-            {registros.length === 0 ? (
-              <p className="mt-4 text-gray-500">Nenhum treino registrado.</p>
-            ) : (
-              <div className="mt-5 overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-gray-200 text-sm text-gray-500">
-                      <th className="px-4 py-3">Data</th>
-                      <th className="px-4 py-3">Hora</th>
-                      <th className="px-4 py-3">Duração</th>
-                      <th className="px-4 py-3">Exercícios realizados</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {registros.map((registro) => (
-                      <tr
-                        key={registro.id_registro}
-                        className="border-b border-gray-100"
-                      >
-                        <td className="px-4 py-3">
-                          {new Date(registro.data_registro).toLocaleDateString(
-                            "pt-BR",
-                          )}
-                        </td>
-
-                        <td className="px-4 py-3">{registro.hora}</td>
-
-                        <td className="px-4 py-3">{registro.duracao}</td>
-
-                        <td className="px-4 py-3">
-                          {registro.exercicios.map((exercicio, index) => (
-                            <div key={index} className="mb-3">
-                              <strong>{exercicio.exercicio}</strong>
-
-                              <p className="text-sm text-gray-600">
-                                Carga: {exercicio.carga} kg | Séries:{" "}
-                                {exercicio.series} | Repetições:{" "}
-                                {exercicio.repeticoes}
-                              </p>
-
-                              <p className="text-sm">
-                                {exercicio.concluido
-                                  ? "Concluído"
-                                  : "Não concluído"}
-                              </p>
-                            </div>
-                          ))}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </div>
         </div>
       </main>

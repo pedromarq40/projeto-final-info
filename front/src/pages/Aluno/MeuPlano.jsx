@@ -96,7 +96,7 @@ export default function MeuPlano({ user, setUser }) {
     new Date(assinatura.data_vencimento).toISOString().slice(0, 10) >= hoje
 
   return (
-    <div className="flex min-h-screen bg-[#f3f5ef] text-[#111310]">
+    <div className="flex min-h-screen bg-[#f3f5ef] pb-20 text-[#111310] md:pb-0">
       <Aside user={user} setUser={setUser} />
 
       <main className="flex-1 px-6 py-10">

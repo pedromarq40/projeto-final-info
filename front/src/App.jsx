@@ -12,6 +12,8 @@ import Exercicios from './pages/Professor/Exercicios.jsx'
 import MeusDados from './pages/Aluno/MeusDados.jsx'
 import FichaDeTreino from './pages/Aluno/FichaDeTreino.jsx'
 import RegistrosDeTreino from './pages/Aluno/RegistrosDeTreino.jsx'
+import HistoricoDeTreino from './pages/Aluno/HistoricoDeTreino.jsx'
+import Progresso from './pages/Aluno/Progresso.jsx'
 import Mensalidade from './pages/Aluno/Mensalidade.jsx'
 import MeuPlano from './pages/Aluno/MeuPlano.jsx'
 import Relatorios from './pages/Admin/Relatorios.jsx'
@@ -123,6 +125,26 @@ export default function App() {
                     element={
                         <Protected
                             children={<RegistrosDeTreino user={user} setUser={setUser} />}
+                            condition={isAuth && user.role === "aluno"}
+                        />
+                    }
+                />
+
+                <Route
+                    path="/aluno/historico-de-treino"
+                    element={
+                        <Protected
+                            children={<HistoricoDeTreino user={user} setUser={setUser} />}
+                            condition={isAuth && user.role === "aluno"}
+                        />
+                    }
+                />
+
+                <Route
+                    path="/aluno/progresso"
+                    element={
+                        <Protected
+                            children={<Progresso user={user} setUser={setUser} />}
                             condition={isAuth && user.role === "aluno"}
                         />
                     }
