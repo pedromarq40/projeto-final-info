@@ -36,6 +36,52 @@ class AssinaturaModel extends BaseModel {
         const [resultado] = await this.db.execute(assinaturasAtivasAlunosQuery)
         return resultado
     }
+    async cancelar(CPF) {
+    const conexao = await this.db.getConnection()
+
+    try {
+        await conexao.beginTransaction()
+
+        const [assinaturas] = await conexao.execute(
+            `SELECT CPF
+             FROM assinatura
+             WHERE CPF = ?
+               AND data_vencimento >= CURDATE()
+             FOR UPDATE`,
+            [CPF]
+        )
+
+        if (assinaturas.length === 0) {
+            await conexao.rollback()
+            return { status: 404 }
+        }
+
+        await conexao.execute(
+            `UPDATE assinatura
+             SET data_vencimento = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+             WHERE CPF = ?`,
+            [CPF]
+        )
+
+        await conexao.execute(
+            `UPDATE mensalidade
+             SET status = 'cancelada'
+             WHERE CPF = ?
+               AND status = 'pendente'
+               AND vencimento > CURDATE()`,
+            [CPF]
+        )
+
+        await conexao.commit()
+        return { status: 200 }
+
+    } catch (err) {
+        await conexao.rollback()
+        throw err
+    } finally {
+        conexao.release()
+    }
+}
 
     async trocar(CPF, id_plano, duracao_meses) {
         const conexao = await this.db.getConnection()
@@ -93,38 +139,41 @@ class AssinaturaModel extends BaseModel {
                 )
             }
 
-            for (
-                let parcela = 0;
-                parcela <= duracao_meses - 1;
-                parcela += intervalo
-            ) {
-                await conexao.execute(
-                    `INSERT INTO mensalidade
-                     (
-                         data_geracao,
-                         CPF,
-                         id_plano,
-                         valor,
-                         vencimento,
-                         data_pagamento,
-                         status
-                     )
-                     VALUES (
-                         DATE_ADD(CURDATE(), INTERVAL ? MONTH),
-                         ?, ?, ?,
-                         DATE_ADD(CURDATE(), INTERVAL ? MONTH),
-                         NULL,
-                         'pendente'
-                     )`,
-                    [
-                        parcela,
-                        CPF,
-                        id_plano,
-                        planos[0].valor_mensal,
-                        parcela + intervalo
-                    ]
-                )
-            }
+           for (
+    let parcela = 0;
+    parcela <= duracao_meses - 1;
+    parcela += intervalo
+) {
+    await conexao.execute(
+        `INSERT INTO mensalidade
+         (
+             data_geracao,
+             CPF,
+             id_plano,
+             valor,
+             vencimento,
+             data_pagamento,
+             status
+         )
+         VALUES (
+             DATE_ADD(NOW(6), INTERVAL ? MONTH),
+             ?, ?, ?,
+             DATE_ADD(
+                 DATE_ADD(CURDATE(), INTERVAL ? MONTH),
+                 INTERVAL 9 DAY
+             ),
+             NULL,
+             'pendente'
+         )`,
+        [
+            parcela,
+            CPF,
+            id_plano,
+            planos[0].valor_mensal,
+            parcela
+        ]
+    )
+}
 
             await conexao.commit()
 

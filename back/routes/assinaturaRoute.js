@@ -11,5 +11,5 @@ router.put('/', auth, (req, res) => AssinaturaController.atualizar(req, res))
 router.delete('/', auth, (req, res) => AssinaturaController.deletar(req, res))
 router.get('/minha', auth, (req, res) => AssinaturaController.minhaAssinatura(req, res))
 router.put('/trocar', auth, (req, res) => AssinaturaController.trocar(req, res))
-
+router.put('/cancelar', auth, (req, res) => AssinaturaController.cancelar(req, res))
 export default router

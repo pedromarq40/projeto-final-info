@@ -63,7 +63,7 @@ class MensalidadeModel extends BaseModel {
          SET data_pagamento = CURDATE(),
              status = 'paga'
          WHERE CPF = ?
-           AND data_geracao = ?
+           AND DATE(data_geracao) = ?
            AND id_plano = ?
            AND status = 'pendente'`,
         [CPF, data_geracao, id_plano]
@@ -76,12 +76,11 @@ async cancelar(CPF, data_geracao, id_plano) {
         `UPDATE mensalidade
          SET status = 'cancelada'
          WHERE CPF = ?
-           AND data_geracao = ?
+           AND DATE(data_geracao) = ?
            AND id_plano = ?
            AND status = 'pendente'`,
         [CPF, data_geracao, id_plano]
     )
-
     return resultado
 }
 

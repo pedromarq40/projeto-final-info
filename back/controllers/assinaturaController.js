@@ -99,6 +99,31 @@ class AssinaturaController extends BaseController {
             error: err.message
         })
     }
+    
+}static async cancelar(req, res) {
+    if (req.user.role !== 'aluno') {
+        return res.status(403).json({
+            error: 'Acesso somente para alunos'
+        })
+    }
+
+    try {
+        const resultado = await this.model.cancelar(req.user.id)
+
+        if (resultado.status === 404) {
+            return res.status(404).json({
+                error: 'Nenhuma assinatura ativa encontrada'
+            })
+        }
+
+        return res.json({
+            message: 'Assinatura cancelada com sucesso'
+        })
+    } catch (err) {
+        return res.status(500).json({
+            error: err.message
+        })
+    }
 }
     }
 

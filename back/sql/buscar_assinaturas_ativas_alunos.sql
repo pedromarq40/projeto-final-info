@@ -3,3 +3,4 @@ SELECT a.CPF,
 FROM assinatura a
 JOIN plano p ON p.id_plano = a.id_plano
 WHERE a.data_vencimento >= CURDATE()
+  AND a.status = 'ativa';

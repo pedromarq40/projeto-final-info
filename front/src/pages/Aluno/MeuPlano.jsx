@@ -55,6 +55,25 @@ export default function MeuPlano({ user, setUser }) {
     }
   }
 
+  async function cancelarAssinatura() {
+    if (!window.confirm("Tem certeza que deseja cancelar sua assinatura?")) {
+      return;
+    }
+
+    setSalvando(true);
+    setMensagem("");
+
+    try {
+      await api.put("/assinaturas/cancelar");
+      setMensagem("Assinatura cancelada com sucesso!");
+      await carregarDados();
+    } catch (err) {
+      setMensagem(err.response?.data?.error || "Erro ao cancelar assinatura");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   function formatarValor(valor) {
     return Number(valor).toLocaleString("pt-BR", {
       style: "currency",
@@ -73,22 +92,8 @@ export default function MeuPlano({ user, setUser }) {
   const hoje = new Date().toISOString().slice(0, 10);
   const assinaturaAtiva =
     assinatura &&
+    assinatura.status === "ativa" &&
     new Date(assinatura.data_vencimento).toISOString().slice(0, 10) >= hoje;
-  const planoEscolhido = planos.find(
-    (plano) => String(plano.id_plano) === String(planoSelecionado),
-  );
-
-  const intervalo = planoEscolhido?.nome
-    ?.toLowerCase()
-    .trim()
-    .includes("trimestral")
-    ? 3
-    : 1;
-  useEffect(() => {
-    setDuracaoMeses(String(intervalo));
-  }, [intervalo]);
-
-  const quantidadeMensalidades = Math.ceil(Number(duracaoMeses) / intervalo);
 
   return (
     <div className="flex min-h-screen bg-[#f3f5ef] text-[#111310]">
@@ -122,7 +127,7 @@ export default function MeuPlano({ user, setUser }) {
                 {assinatura ? (
                   <div className="mt-5 space-y-3">
                     <p>
-                      <strong>Plano:</strong> {assinatura.nome}
+                     <strong>Plano:</strong> Plano Essencial
                     </p>
 
                     <p>
@@ -144,6 +149,16 @@ export default function MeuPlano({ user, setUser }) {
                       <strong>Duração:</strong> {assinatura.duracao_meses}{" "}
                       {assinatura.duracao_meses === 1 ? "mês" : "meses"}
                     </p>
+
+                    {assinaturaAtiva && (
+                      <button
+                        onClick={cancelarAssinatura}
+                        disabled={salvando}
+                        className="mt-4 rounded-lg bg-red-600 px-5 py-2 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                      >
+                        {salvando ? "Processando..." : "Cancelar assinatura"}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <p className="mt-4 text-gray-500">
@@ -151,7 +166,6 @@ export default function MeuPlano({ user, setUser }) {
                   </p>
                 )}
               </div>
-
               <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-bold">Assinar um plano</h2>
 
@@ -188,8 +202,12 @@ export default function MeuPlano({ user, setUser }) {
                             }
                             className="mr-2"
                           />
+                          <span className="font-bold">Plano Essencial</span>
 
-                          <span className="font-bold">{plano.nome}</span>
+                          <p className="mt-2 text-sm text-gray-500">
+                            Acesso às funcionalidades essenciais para organizar
+                            sua rotina de treinos e acompanhar seus exercícios.
+                          </p>
 
                           <p className="mt-3 text-lg font-semibold">
                             {formatarValor(plano.valor_mensal)}
@@ -206,8 +224,8 @@ export default function MeuPlano({ user, setUser }) {
                         className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2"
                       >
                         {Array.from(
-                          { length: Math.floor(24 / intervalo) },
-                          (_, index) => (index + 1) * intervalo,
+                          { length: 24 },
+                          (_, index) => index + 1,
                         ).map((meses) => (
                           <option key={meses} value={meses}>
                             {meses} {meses === 1 ? "mês" : "meses"}
@@ -217,10 +235,9 @@ export default function MeuPlano({ user, setUser }) {
                     </label>
 
                     <p className="mt-3 text-sm text-gray-500">
-                      Serão geradas {quantidadeMensalidades} mensalidades, com
-                      cobrança a cada {intervalo}{" "}
-                      {intervalo === 1 ? "mês" : "meses"}. O pagamento não é
-                      processado pela plataforma.
+                      Serão geradas {Number(duracaoMeses)} mensalidades, com
+                      cobrança mensal. O pagamento não é processado pela
+                      plataforma.
                     </p>
 
                     <button

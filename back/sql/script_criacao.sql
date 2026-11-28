@@ -115,10 +115,10 @@ CREATE TABLE IF NOT EXISTS assinatura(
     CPF VARCHAR(11) NOT NULL UNIQUE,
     data_assinatura DATE NOT NULL,
     data_vencimento DATE NOT NULL,
+    status ENUM('ativa', 'cancelada') NOT NULL DEFAULT 'ativa',
     FOREIGN KEY (id_plano) REFERENCES plano(id_plano),
     FOREIGN KEY (CPF) REFERENCES aluno(CPF)
 );
-
 /* INSERTS */
 
 INSERT IGNORE INTO admin
