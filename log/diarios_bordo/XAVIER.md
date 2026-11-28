@@ -24,4 +24,10 @@ Descrição: Implementação do cadastro, login, consulta e edição dos dados d
 
 Data: 23/11/2026 Tarefa: Finalização e testes das funcionalidades do módulo Aluno Descrição: Realizei ajustes no código do módulo aluno, correção de problemas relacionados à autenticação e ao login, testei as funcionalidades de cadastro, consulta, atualização e exclusão de alunos. 
 
+-----------------------------------------------------------------------------------------------------------------------
+
+Data: 27/11/2026
+Tarefa: Ajustes nas funcionalidades de assinatura e mensalidade.
+Descrição:Fiz ajustes no código de assinatura e mensalidade, corrigi problemas no cancelamento e na contratação de planos e testei as funcionalidades para verificar se estavam funcionando corretamente.
+
 
